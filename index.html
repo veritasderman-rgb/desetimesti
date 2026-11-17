@@ -1981,7 +1981,7 @@ const panel=el('section',{id:'dmPanel',class:'glass hidden'},`
   <div class="row"><span>Denní doba</span><input type="range" id="dmHour" min="0" max="24" step="0.25" style="flex:1;min-width:90px"><span id="dmHourT" style="min-width:44px;text-align:right"></span><label class="btn" style="white-space:nowrap"><input type="checkbox" id="dmClock" style="margin-right:6px">čas plyne</label></div>
   <div class="row"><button class="btn" id="dmNext">Další den ▸</button><button class="btn" id="dmReroll">Přehodit předpověď</button><button class="btn" id="dmDay0">Den 1</button></div>
   <h3>Družina</h3>
-  <div class="row"><button class="btn" id="dmPlace">📍 Umístit klepnutím</button><button class="btn" id="dmGo">Najít</button><button class="btn" id="dmHere">Do vybraného místa</button></div>
+  <div class="row"><button class="btn" id="dmPlace">📍 Umístit klepnutím</button><button class="btn" id="dmGo">Najít</button><button class="btn" id="dmHere">Do vybraného místa</button><button class="btn" id="dmClear">✕ Odebrat z mapy</button></div>
   <div class="note" id="dmRange"></div>
   <div class="row"><button class="btn" id="dmTravel">🥾 Cestovat po změřené trase</button></div>
   <h3>Náhodné setkání <span class="note">(homebrew)</span></h3>
@@ -2028,6 +2028,7 @@ function updRing(){ if(!DM.party){ party.visible=ring.visible=false; $('dmRange'
 function setParty(x,z,why){ DM.party={x,z}; dmSave(); updRing(); if(why) logJ(why); }
 let placing=false; $('dmPlace').onclick=()=>{ placing=!placing; $('dmPlace').classList.toggle('on',placing); };
 { const _sp=showProbe; showProbe=function(p){ if(placing){ placing=false; $('dmPlace').classList.remove('on'); setParty(p.x,p.z,'Družina umístěna na mapu.'); return; } return _sp(p); }; }
+$('dmClear').onclick=()=>{ if(!DM.party) return; DM.party=null; placing=false; $('dmPlace').classList.remove('on'); dmSave(); updRing(); logJ('Družina odebrána z mapy.'); };
 $('dmGo').onclick=()=>{ if(!DM.party) return; const t=new THREE.Vector3(DM.party.x,ground(DM.party.x,DM.party.z),DM.party.z); flyTo(t.clone().add(new THREE.Vector3(2,6,9)),t); };
 $('dmHere').onclick=()=>{ if(curPlace&&!$('info').classList.contains('hidden')) setParty(curPlace.x,curPlace.z,'Družina je v místě '+curPlace.name+'.'); };
 { const _sw=setWeather; setWeather=function(w,r){ const v=_sw(w,r); try{ updRing(); }catch(e){} return v; }; }
