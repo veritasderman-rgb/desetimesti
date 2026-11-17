@@ -446,6 +446,7 @@ const HILLS=[]; for(const t of TEN) for(const h of t.plan.hills||[]){ const g=tg
 const ICELAKES=[[[87.9,52.6],[91.7,51.5],[95.1,53.0],[91.4,55.6]],[[74.5,59.2],[78.5,58.9],[81.0,61.1],[77.2,62.4]],[[84.6,61.5],[90.3,59.5],[94.1,61.7],[89.7,67.7],[84.3,66.6]],[[104.8,65.2],[111.0,63.9],[114.8,66.0],[109.1,69.6],[105.3,68.1]],[[114.6,60.7],[120.5,59.5],[126.2,62.0],[126.3,64.9],[119.9,66.1],[115.8,63.7]],[[94.3,72.0],[99.8,70.5],[104.9,73.1],[98.5,78.2],[93.7,75.9]],[[75.9,73.8],[81.2,72.3],[84.9,75.3],[81.4,81.0],[76.3,79.3]],[[77.4,84.9],[81.6,83.2],[84.8,85.6],[81.2,90.5],[77.4,88.5]],[[89.5,83.9],[94.2,81.7],[98.0,84.3],[94.4,91.2],[89.1,89.7]],[[111.2,80.1],[118.2,77.0],[123.8,78.5],[123.5,84.3],[116.4,88.0],[110.5,87.2]]]
   .map(p0=>{ let pts=p0; for(let it=0;it<3;it++){ const q=[]; for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length]; q.push([a[0]*0.75+b[0]*0.25,a[1]*0.75+b[1]*0.25],[a[0]*0.25+b[0]*0.75,a[1]*0.25+b[1]*0.75]); } pts=q; } const cx0=p0.reduce((s,p)=>s+p[0],0)/p0.length, cz0=p0.reduce((s,p)=>s+p[1],0)/p0.length; pts=pts.map(p=>[cx0+(p[0]-cx0)*1.18,cz0+(p[1]-cz0)*1.18]); let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9; for(const p of pts){ x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); z0=Math.min(z0,p[1]); z1=Math.max(z1,p[1]); } return {pts,closed:pts.concat([pts[0]]),bb:[x0,x1,z0,z1],cx:(x0+x1)/2,cz:(z0+z1)/2,y:null}; });
 function terrain(x,z){ const t=terrain0(x,z);
+  { const d=Math.hypot(x-127.4,z-34.3); if(d<4.5){ const k=smooth(1.1,4.5,d), fl=1.3+0.15*fbm(x*0.8,z*0.8,2); if(t.h>fl) t.h=fl+(t.h-fl)*k*k; } }   // Kuldahar: chráněná kotlina v horách
   if(x>68 && x<132 && z>46 && z<96) for(const L of ICELAKES){ const b=L.bb; if(x<b[0]-3.2||x>b[1]+3.2||z<b[2]-3.2||z>b[3]+3.2) continue;
     if(L.y===null){ let m=terrain0(L.cx,L.cz).h; for(const p of L.pts) m=Math.min(m,terrain0(p[0],p[1]).h); L.y=Math.max(0.35,m); }
     const d=distPoly(x,z,L.closed);
@@ -608,7 +609,7 @@ CITIES.push(
    desc:"Srubová osada uthgardtského kmene Hromového zvířete na okraji lesa."},
   {id:'blasingdell', name:"Blasingdell", x:169, z:30, s:2.6, r:0.6, n:8, minor:true, site:true, sub:"Hornické městečko · úpatí Páteře světa",
    desc:"Malé hornické a obchodní městečko v podhůří severně od Mirabaru. Odtud se vychází k hoře Kamenný zub. Poloha podle přehledové mapy Severu."},
-  {id:'stone-tooth', name:"Kamenný zub", en:"Stone Tooth", x:180, z:4, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Stone Tooth · hora v Páteři světa",
+  {id:'stone-tooth', name:"Kamenný zub", en:"Stone Tooth", x:180, z:4, s:2.4, r:0.5, n:0, minor:true, site:true, sub:"Stone Tooth · hora v Páteři světa",
    desc:"Osamělý skalnatý štít, v jehož nitru leží opuštěná trpasličí pevnost Khundrukar se slavnou kovárnou. Dnes ji obývají orkové a horší věci."},
   {id:'dungeon-ruins', name:"Dungeon of the Ruins", x:473, z:121, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Zříceniny · východní okraj mapy",
    desc:"Zříceniny s podzemím na východním okraji mapy. Poloha podle přehledové mapy Severu, přibližně."},
@@ -640,11 +641,11 @@ CITIES.push(
    desc:"Osada na jižním okraji Letohradského hvozdu. Poloha podle přehledové mapy Severu."},
   {id:'loggers-camp', name:"Tábor dřevorubců", x:192, z:256, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Tibor Wester's loggers camp",
    desc:"Dřevorubecký tábor na řece v Letohradském hvozdu, který vede Tibor Wester."},
-  {id:'circle-thunder', name:"Kruh hromu", x:235, z:256.5, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Circle of Thunder",
+  {id:'circle-thunder', name:"Kruh hromu", x:235, z:256.5, s:2.4, r:0.5, n:0, minor:true, site:true, sub:"Circle of Thunder",
    desc:"Kamenný kruh na kopci v lese, kde se scházejí vyznavači boha bouří Talose."},
   {id:'falcons-lodge', name:"Falconův lovecký srub", x:214, z:265, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Falcon's hunting lodge",
    desc:"Opevněný lovecký srub starého lovce Falcona uprostřed Letohradského hvozdu."},
-  {id:'xinlenal', name:"Xinlenal", x:236, z:267, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Zříceniny · padlé netherské město",
+  {id:'xinlenal', name:"Xinlenal", x:236, z:267, s:2.4, r:0.5, n:0, minor:true, site:true, sub:"Zříceniny · padlé netherské město",
    desc:"Trosky létajícího netherského města, které se kdysi zřítilo do Letohradského hvozdu."},
   {id:'floodblest', name:"Floodblest", x:147, z:270, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Letohradská řeka",
    desc:"Osada na Letohradské řece nedaleko Thundertree. Poloha podle přehledové mapy Severu."},
@@ -652,7 +653,7 @@ CITIES.push(
    desc:"Svatyně u cesty severně od Helmovy tvrze. Poloha podle přehledové mapy Severu."},
   {id:'vilnask', name:"Vilnask", x:121, z:287, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Vysoká cesta",
    desc:"Osada u Vysoké cesty jižně od Letohradu. Poloha podle přehledové mapy Severu."},
-  {id:'cragmaw-castle', name:"Hrad Cragmaw", x:166, z:302, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Cragmaw Castle · zřícenina",
+  {id:'cragmaw-castle', name:"Hrad Cragmaw", x:166, z:302, s:2.4, r:0.5, n:0, minor:true, site:true, sub:"Cragmaw Castle · zřícenina",
    desc:"Polorozpadlý hrad v lese, kde sídlí goblinoidní kmen Cragmaw."},
   {id:'griffons-nest', name:"Griffon's Nest", x:352, z:158, s:2.4, r:0.5, n:6, minor:true, site:true, sub:"Surbrin Hills · Uthgardti",
    desc:"Opevněná osada uthgardtského kmene Gryfa v pahorkatině."},
@@ -808,9 +809,9 @@ function axis(a0,a1,b0,b1,fine,maxStep,g){
 const XS = axis(B.x0,B.x1,-7,22,HQ?0.15:0.24,HQ?2.0:3.6,1.07), ZS = axis(B.z0,B.z1,-13.5,9,HQ?0.15:0.24,HQ?2.0:3.6,1.07);
 { const add=(arr,a,b,st)=>{ for(let v=a; v<=b; v+=st) arr.push(v); arr.sort((p,q)=>p-q); for(let i=arr.length-1;i>0;i--) if(arr[i]-arr[i-1]<st*0.45) arr.splice(i,1); };
   add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,469.6,481.2,HQ?0.14:0.24);
-  add(XS,70,130,HQ?0.6:1.0); add(ZS,48,94,HQ?0.6:1.0);
   const add2=(arr,a,b,st)=>{ const base=arr.slice(), out=[]; let j=0; for(let v=a; v<=b; v+=st){ while(j<base.length-1 && base[j+1]<=v) j++; const d=Math.min(Math.abs(v-base[j]), j<base.length-1?Math.abs(base[j+1]-v):1e9); if(d>=st*0.55) out.push(v); } for(const v of out) arr.push(v); arr.sort((p,q)=>p-q); };
-  add2(ZS,-42,52,HQ?1.0:1.8); if(HQ) add2(XS,-60,478,1.5); }      // jemná mřížka pod Hlubinou
+  add2(XS,70,130,HQ?0.6:1.0); add2(ZS,48,94,HQ?0.6:1.0);
+  add2(ZS,-42,52,HQ?1.0:1.8); if(HQ) add2(XS,-60,235,1.5); }      // jemná mřížka pod Hlubinou
 const SEASONS={
   winter:{id:'winter',name:'zima',zA:330,zB:105,eA:2.2,eB:4.5,patch:1,green:0,seaA:105,seaB:45,ice:true,dale:2,road:14,southT:-2,refT:-22,sled:true},
   spring:{id:'spring',name:'jaro',zA:120,zB:10,eA:3.5,eB:6.5,patch:0.45,green:0.3,seaA:60,seaB:0,ice:true,dale:2.5,road:20,southT:9,refT:-3,sled:true},
@@ -850,7 +851,14 @@ const ground=(x,z)=>Math.max(meshH(x,z),0);
     if(glA[k]>0.05){ c.lerp(glC, glA[k]*0.85); if(glA[k]>0.5 && ridged(x*0.5,z*1.1,2)>0.92) c.lerp(crev,0.6); }
     col[k*3]=c.r; col[k*3+1]=c.g; col[k*3+2]=c.b; } if(geo.attributes.color) geo.attributes.color.needsUpdate=true; };
   geo.setAttribute('color', new THREE.BufferAttribute(col,3)); paintTerrain(SEASON);
-  scene.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({vertexColors:true, flatShading:true, roughness:0.93, metalness:0})));
+  // terén rozdělený na dlaždice se sdílenými daty: části mimo záběr se vůbec nekreslí
+  { const tmat=new THREE.MeshStandardMaterial({vertexColors:true, flatShading:true, roughness:0.93, metalness:0}), TS=HQ?48:40;
+    for(let j0=0;j0<NZ-1;j0+=TS) for(let i0=0;i0<NX-1;i0+=TS){ const j1=Math.min(NZ-1,j0+TS), i1=Math.min(NX-1,i0+TS), ti=new Uint32Array((j1-j0)*(i1-i0)*6); let q2=0, y0=1e9, y1=-1e9;
+      for(let j=j0;j<j1;j++) for(let i=i0;i<i1;i++){ const a=j*NX+i, b=a+1, c2=a+NX, d=c2+1; ti[q2++]=a; ti[q2++]=c2; ti[q2++]=b; ti[q2++]=b; ti[q2++]=c2; ti[q2++]=d; }
+      for(let j=j0;j<=j1;j++) for(let i=i0;i<=i1;i++){ const h=HH[j*NX+i]; if(h<y0) y0=h; if(h>y1) y1=h; }
+      const tg2=new THREE.BufferGeometry(); tg2.setAttribute('position',geo.attributes.position); tg2.setAttribute('normal',geo.attributes.normal); tg2.setAttribute('color',geo.attributes.color); tg2.setIndex(new THREE.BufferAttribute(ti,1));
+      tg2.boundingBox=new THREE.Box3(new THREE.Vector3(XS[i0],y0,ZS[j0]),new THREE.Vector3(XS[i1],y1,ZS[j1])); tg2.boundingSphere=tg2.boundingBox.getBoundingSphere(new THREE.Sphere());
+      scene.add(new THREE.Mesh(tg2,tmat)); } }
 }
 const W=B.x1-B.x0, D=B.z1-B.z0, CX=(B.x0+B.x1)/2, CZ=(B.z0+B.z1)/2;
 { const slab=new THREE.Mesh(new THREE.BoxGeometry(W,4,D), new THREE.MeshStandardMaterial({color:0x232c3d, roughness:1})); slab.position.set(CX,-2.03,CZ); scene.add(slab); }
@@ -929,7 +937,7 @@ function ribbon(pts, wNear, wFar, mat, lift){
 }
 
 // ================================================================ města
-const HREC=[], LAND=[], PLANH=[]; let bm, rm;
+const HREC=[], LAND=[], PLANH=[], PROPS=[]; let bm, rm;
 const boxes=[], roofs=[], wins=[], glows=[], TREES=[], POIS=[];
 const addBox=(x,z,yb,sx,sy,sz,ry,col)=>boxes.push([x,yb+sy/2,z,sx,sy,sz,ry,col]);
 const glowTex = (()=>{ const s=128, cv=document.createElement('canvas'); cv.width=cv.height=s; const g=cv.getContext('2d');
@@ -1048,7 +1056,7 @@ CITIES.filter(t=>!t.custom).forEach(buildTown);
   for(let i=0;i<wall.length-1;i++){ const a=wall[i], b=wall[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1]), n=Math.max(1,Math.round(L/0.11)); DR.walls.push([a,b]); DR.towers.push(a);
     for(let k=0;k<n;k++){ const x=a[0]+(b[0]-a[0])*(k+0.5)/n, z=a[1]+(b[1]-a[1])*(k+0.5)/n; if(gates.some(g=>Math.hypot(g[0]-x,g[1]-z)<0.07)) continue;
       addBox(x,z,ground(x,z)-0.02,0.045,0.13,L/n*1.05,Math.atan2(b[0]-a[0],b[1]-a[1]),STONE); if(k%4===1) LAND.push(['tower',x,z,0.22,k]); } LAND.push(['tower',a[0],a[1],0.3,i]); }
-  gates.forEach(g=>{ LAND.push(['tower',g[0]-0.07,g[1],0.34,0],['tower',g[0]+0.07,g[1],0.34,1]); });
+  gates.forEach(g=>{ if(HQ) PROPS.push(['citygate',g[0],g[1],0.3,0]); else LAND.push(['tower',g[0]-0.07,g[1],0.34,0],['tower',g[0]+0.07,g[1],0.34,1]); });
   // zástavba
   const st=HQ?0.082:0.125, pal=[0x6b4a36,0x7a5a44,0x8a6a50,0x5c4636,0x8c7a66], roofc=[0xf1f4f8,0xe4e9f0,0x8a3d2e,0x9a4a34,0xdfe5ee,0x6d5a52];
   let bi=0; for(let z=WD.O[1]-3.7; z<WD.O[1]+3.7; z+=st){ bi++; let bj=0; for(let x=WD.O[0]-1.9; x<WD.O[0]+1.9; x+=st){ bj++;
@@ -1085,33 +1093,42 @@ CITIES.filter(t=>!t.custom).forEach(buildTown);
       if(x<B.x0+3||x>B.x1-3||z<B.z0+3||z>B.z1-3) continue; if(forestV(x,z)<0.03) continue; const h=meshH(x,z); if(h<0.03 || h>4.2) continue;
       if(F[5]<1 && (inLake(x,z) || roadD(x,z)<0.03)) continue;
       if(ALL.some(t=>Math.hypot(x-t.x,z-t.z)<t.r*1.08)) continue;
-      TREES.push([x,z,F[5]*(0.7+r()*0.7)]); placed++; } });
-  // stromy: pět druhů (smrk, jedle, borovice, listnáč, souše), každý zvlášť instancovaný, se sněhovou čepicí
-  { const mergeG=(parts)=>{ const P=[], C=[]; for(const [g,x,y,z,col,sx,sy,sz] of parts){ const n=g.toNonIndexed(); n.scale(sx||1,sy||1,sz||sx||1); n.translate(x,y,z); const a=n.attributes.position.array, c=new THREE.Color(col); for(let k=0;k<a.length;k+=3){ P.push(a[k],a[k+1],a[k+2]); C.push(c.r,c.g,c.b); } }
+      TREES.push([x,z,F[5]*(0.7+r()*0.7),fi]); placed++; } });
+  // stromy: pět druhů, instancované po lesích (aby se celé lesy mimo záběr nekreslily); na mobilu zjednodušené tvary
+  { const mergeG=(parts)=>{ const P=[], C=[]; for(const [g0,x,y,z,col,sx,sy,sz] of parts){ const n=g0.index?g0.toNonIndexed():g0; n.scale(sx||1,sy||1,sz||sx||1); n.translate(x,y,z); const a=n.attributes.position.array, c=new THREE.Color(col); for(let k=0;k<a.length;k+=3){ P.push(a[k],a[k+1],a[k+2]); C.push(c.r,c.g,c.b); } }
       const G=new THREE.BufferGeometry(); G.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); G.setAttribute('color',new THREE.Float32BufferAttribute(C,3)); G.computeVertexNormals(); return G; };
-    const cone=(r,h,s=6)=>new THREE.ConeGeometry(r,h,s), cyl=(r,h)=>new THREE.CylinderGeometry(r*0.7,r,h,5), ico=(r)=>new THREE.IcosahedronGeometry(r,0);
+    const NS=HQ?6:5, cone=(r,h)=>new THREE.ConeGeometry(r,h,NS,1,true), cyl=(r,h)=>new THREE.CylinderGeometry(r*0.7,r,h,4,1,true), ico=(r)=>new THREE.IcosahedronGeometry(r,0);
     const GR=0xffffff, BR=0x8a6a4a, SN=0xf2f6fc;
-    const SP=[
-      { g:mergeG([[cyl(0.06,0.3),0,0.15,0,BR],[cone(0.5,0.62,7),0,0.55,0,GR],[cone(0.39,0.56,7),0,0.9,0,0xe6f2e6],[cone(0.26,0.52,7),0,1.24,0,0xd6ead6]]),
-        s:mergeG([[cone(0.36,0.2,7),0,0.74,0,SN],[cone(0.28,0.2,7),0,1.06,0,SN],[cone(0.2,0.34,7),0,1.36,0,SN]]), col:0x2a4634 },                       // smrk
-      { g:mergeG([[cyl(0.05,0.3),0,0.15,0,BR],[cone(0.27,1.9,6),0,1.15,0,GR]]), s:mergeG([[cone(0.15,0.8,6),0,1.72,0,SN]]), col:0x22402f },         // štíhlá jedle
-      { g:mergeG([[cyl(0.055,0.95),0,0.47,0,BR],[cone(0.46,0.5,6),0,1.05,0,GR],[cone(0.33,0.42,6),0,1.38,0,0xe2efe0]]), s:mergeG([[cone(0.3,0.16,6),0,1.26,0,SN],[cone(0.22,0.26,6),0,1.5,0,SN]]), col:0x35523a },   // borovice
-      { g:mergeG([[cyl(0.07,0.7),0,0.35,0,BR],[ico(0.44),0,1.0,0,GR,1,0.9,1],[ico(0.3),0.22,1.22,0.1,0xe8e8e8],[ico(0.27),-0.2,0.86,-0.14,0xdcdcdc]]), s:mergeG([[ico(0.3),0.02,1.2,0,SN,1.1,0.45,1.1]]), col:0x6b5a4c, dec:true },   // listnáč
-      { g:mergeG([[cyl(0.06,1.25),0,0.62,0,0xb0a89c],[cyl(0.025,0.4),0.14,0.95,0,0xb0a89c],[cyl(0.02,0.3),-0.1,0.7,0.06,0xb0a89c]]), s:mergeG([[cone(0.05,0.1,5),0,1.28,0,SN]]), col:0x7c746c },     // souše
+    const SP=HQ?[
+      { g:mergeG([[cyl(0.06,0.3),0,0.15,0,BR],[cone(0.5,0.62),0,0.55,0,GR],[cone(0.39,0.56),0,0.9,0,0xe6f2e6],[cone(0.26,0.52),0,1.24,0,0xd6ead6]]),
+        s:mergeG([[cone(0.3,0.2),0,1.04,0,SN],[cone(0.2,0.36),0,1.35,0,SN]]), col:0x2a4634 },
+      { g:mergeG([[cyl(0.05,0.3),0,0.15,0,BR],[cone(0.27,1.9),0,1.15,0,GR]]), s:mergeG([[cone(0.15,0.8),0,1.72,0,SN]]), col:0x22402f },
+      { g:mergeG([[cyl(0.055,0.95),0,0.47,0,BR],[cone(0.46,0.5),0,1.05,0,GR],[cone(0.33,0.42),0,1.38,0,0xe2efe0]]), s:mergeG([[cone(0.23,0.28),0,1.5,0,SN]]), col:0x35523a },
+      { g:mergeG([[cyl(0.07,0.7),0,0.35,0,BR],[ico(0.44),0,1.0,0,GR,1,0.9,1],[ico(0.3),0.22,1.22,0.1,0xe8e8e8]]), s:mergeG([[cone(0.3,0.22),0,1.36,0,SN]]), col:0x6b5a4c, dec:true },
+      { g:mergeG([[cyl(0.06,1.25),0,0.62,0,0xb0a89c],[cyl(0.025,0.4),0.14,0.95,0,0xb0a89c]]), s:mergeG([[cone(0.05,0.1),0,1.28,0,SN]]), col:0x7c746c },
+    ]:[
+      { g:mergeG([[cone(0.48,0.75),0,0.5,0,GR],[cone(0.3,0.7),0,1.02,0,0xdcecdc]]), s:mergeG([[cone(0.2,0.36),0,1.3,0,SN]]), col:0x2a4634 },
+      { g:mergeG([[cone(0.27,1.9),0,1.0,0,GR]]), s:mergeG([[cone(0.15,0.8),0,1.6,0,SN]]), col:0x22402f },
+      { g:mergeG([[cyl(0.055,0.9),0,0.45,0,BR],[cone(0.44,0.6),0,1.1,0,GR]]), s:mergeG([[cone(0.24,0.28),0,1.34,0,SN]]), col:0x35523a },
+      { g:mergeG([[cyl(0.07,0.7),0,0.35,0,BR],[ico(0.44),0,1.0,0,GR,1,0.9,1]]), s:mergeG([[cone(0.3,0.22),0,1.34,0,SN]]), col:0x6b5a4c, dec:true },
+      { g:mergeG([[cyl(0.06,1.25),0,0.62,0,0xb0a89c]]), s:mergeG([[cone(0.05,0.1),0,1.28,0,SN]]), col:0x7c746c },
     ];
+    const mats=SP.map(S=>new THREE.MeshStandardMaterial({color:S.col, vertexColors:true, flatShading:true, roughness:0.9, side:THREE.DoubleSide})), snowM=new THREE.MeshStandardMaterial({color:0xffffff, vertexColors:true, flatShading:true, roughness:0.8});
     const hs2=(k,a)=>{ const v=Math.sin(k*12.9898+a*78.233)*43758.5453; return v-Math.floor(v); };
     const kind=(T,k)=>{ const u=hs2(k,1), south=smooth(150,300,T[1])*(dDale(T[0],T[1])<40?0:1), small=T[2]<0.03;
       if(u<0.025 && !small) return 4; if(!small && hs2(k,2)<south*0.6) return 3; const v=hs2(k,3), cold=1-smooth(40,220,T[1]); return v<0.45+0.2*cold?0 : v<0.72+0.1*cold?1 : 2; };
-    const lists=SP.map(()=>[]); TREES.forEach((T,k)=>lists[kind(T,k)].push([T,k]));
-    const o=new THREE.Object3D(), col=new THREE.Color(), caps=[]; let decid=null;
-    SP.forEach((S,si)=>{ const L=lists[si]; if(!L.length) return;
-      const gm=new THREE.InstancedMesh(S.g,new THREE.MeshStandardMaterial({color:S.col, vertexColors:true, flatShading:true, roughness:0.9}),L.length);
-      const sm=new THREE.InstancedMesh(S.s,new THREE.MeshStandardMaterial({color:0xffffff, vertexColors:true, flatShading:true, roughness:0.8}),L.length);
+    const groups=new Map(); TREES.forEach((T,k)=>{ const f=T[3]!=null?T[3]:(T[1]>300?-2:-1), key=f+'|'+kind(T,k); if(!groups.has(key)) groups.set(key,[]); groups.get(key).push([T,k]); });
+    const o=new THREE.Object3D(), col=new THREE.Color(), caps=[];
+    const buildG=(key,L)=>{ const si=+key.split('|')[1], S=SP[si];
+      const gm=new THREE.InstancedMesh(S.g,mats[si],L.length), sm=new THREE.InstancedMesh(S.s,snowM,L.length);
       L.forEach(([T,k],n)=>{ const h=ground(T[0],T[1]), s=T[2], sy=s*(0.8+hs2(k,4)*0.55), sx=s*(0.85+hs2(k,5)*0.35);
         o.position.set(T[0],h-0.02*s,T[1]); o.scale.set(sx,sy,sx); o.rotation.set((hs2(k,6)-0.5)*0.14,hs2(k,7)*6.283,(hs2(k,8)-0.5)*0.14); o.updateMatrix(); gm.setMatrixAt(n,o.matrix); sm.setMatrixAt(n,o.matrix);
         const b=0.78+hs2(k,9)*0.44; col.setRGB(b*(0.92+hs2(k,10)*0.16),b,b*(0.9+hs2(k,11)*0.2)); gm.setColorAt(n,col); });
-      if(gm.instanceColor) gm.instanceColor.needsUpdate=true; scene.add(gm,sm); caps.push(sm); if(S.dec) decid=gm; });
-    SEASON_OBJ.trees={caps,decid}; }
+      if(gm.instanceColor) gm.instanceColor.needsUpdate=true; gm.computeBoundingSphere(); sm.computeBoundingSphere(); sm.visible=SEASON.patch>0.6; scene.add(gm,sm); caps.push(sm); };
+    SEASON_OBJ.trees={caps,decid:{material:mats[3]}};
+    // sever (Desetiměstí a okolí) hned, zbytek mapy postupně od severu k jihu, aby se úvodní načtení nezdržovalo
+    const later=[]; for(const [key,L] of groups){ const f=+key.split('|')[0], fz=f>=0?FORESTS[f][1]:(f===-2?475:0); if(fz<70) buildG(key,L); else later.push([fz,key,L]); }
+    later.sort((p,q)=>p[0]-q[0]); const step=()=>{ const t0=performance.now(); while(later.length && performance.now()-t0<10){ const [,key,L]=later.shift(); buildG(key,L); } if(later.length) setTimeout(step,70); }; setTimeout(step,900); }
 }
 
 // pole a statky (zimní šachovnice; Goldenfields zlatě)
@@ -1388,8 +1405,8 @@ function prepModel(gl){ let mesh=null; gl.scene.updateMatrixWorld(true); gl.scen
   geo.translate(-(bb.min.x+bb.max.x)/2, -bb.min.y, -(bb.min.z+bb.max.z)/2);
   return {geo, mat:mesh.material, dx:bb.max.x-bb.min.x, dy:bb.max.y-bb.min.y, dz:bb.max.z-bb.min.z}; }
 const MODSRC={}; let modAsk=0, modDone=0; const modStat=()=>{ const el=document.getElementById('mstat'); if(el){ el.textContent=modDone<modAsk?`Načítám modely ${modDone}/${modAsk}`:''; } };
-const modReady=Promise.all((HQ?['lite','extra','houses']:['lite']).map(n=>import('./models_'+n+'.js').then(m=>Object.assign(MODSRC,m.default)).catch(()=>null)));
-function loadModel(name){ modAsk++; modStat(); return modReady.then(()=>new Promise(res=>{ const done=(v)=>{ modDone++; modStat(); res(v); }; const s=MODSRC[name]; if(!s) return done(null); try{ gltfLoader.parse(b64buf(s),'',gl=>{ MODELS[name]=prepModel(gl); done(MODELS[name]); },()=>done(null)); }catch(e){ done(null); } })); }
+const MGRP={"ship": "lite", "dragon": "lite", "giant": "lite", "castle": "lite", "tower": "lite", "wizard": "lite", "kraken": "lite", "house": "houses", "inn": "houses", "long": "houses", "town": "houses", "manor": "houses", "house2": "houses", "house3": "houses", "house5": "houses", "house6": "houses", "house7": "houses", "ptower": "houses", "tavern": "houses", "smithy": "houses", "granary": "houses", "guardhouse": "houses", "temple": "houses", "burgher": "houses", "halftimber": "houses", "fishrack": "props", "stalls": "props", "well": "props", "crane": "props", "rowboat": "props", "trawler": "props", "iceboats": "props", "citytower": "props", "citygate": "props", "lighthouse": "props", "cathedral": "props", "kelvin": "marks", "crater": "marks", "tooth": "marks", "oak": "marks", "cragmaw": "marks", "xinlenal": "marks", "circle": "marks", "reghed": "marks", "gobcamp": "marks", "mine": "marks", "icecave": "marks", "bear": "extra", "cat": "extra", "griffon": "extra", "mammoth": "extra", "mill": "extra", "reindeer": "extra", "remorhaz": "extra", "sled": "extra", "tent": "extra", "wolf": "extra", "yeti": "extra"}, grpP={}; const grp=(g)=>grpP[g]||(grpP[g]=((HQ||g==='lite'||g==='marks')?import('./models_'+g+'.js').then(m=>Object.assign(MODSRC,m.default)).catch(()=>null):Promise.resolve(null)));
+function loadModel(name){ modAsk++; modStat(); return grp(MGRP[name]||'lite').then(()=>new Promise(res=>{ const done=(v)=>{ modDone++; modStat(); res(v); }; const s=MODSRC[name]; if(!s) return done(null); try{ gltfLoader.parse(b64buf(s),'',gl=>{ MODELS[name]=prepModel(gl); done(MODELS[name]); },()=>done(null)); }catch(e){ done(null); } })); }
 function swapIn(groups,M,s,y=0,ry=0){ for(const g of groups){ g.clear(); const c=new THREE.Mesh(M.geo,M.mat); c.scale.setScalar(s); c.position.y=y; c.rotation.y=ry; g.add(c); } }
 loadModel('ship').then(M=>{ if(M) swapIn(shipGroups,M,0.85,-0.09); });
 loadModel('giant').then(M=>{ if(M) swapIn(giantGroups,M,0.6); });
@@ -1412,7 +1429,24 @@ addLabel('Remorhaz',31,-15.5,0.4,'region small click',{max:12,click:()=>showNote
 loadModel('mammoth').then(M=>{ if(M) swapIn(mammothGroups,M,0.62); });
 loadModel('mill').then(M=>{ if(M) swapIn(millGroups,M,0.8); });
 loadModel('tent').then(M=>{ if(!M) return; for(const tp of tentParts){ const c=new THREE.Mesh(M.geo,M.mat); c.scale.setScalar(0.78); c.position.set(tp.position.x,0,tp.position.z); c.rotation.y=tp.position.x; tp.parent.add(c); tp.parent.remove(tp); } });
-Promise.all(['castle','tower',...(HQ?['ptower']:[])].map(loadModel)).then(()=>{ for(const [k,x,z,hgt,ry] of LAND){ const M=MODELS[k]; if(!M) continue; const c=new THREE.Mesh(M.geo,M.mat); c.scale.setScalar(hgt/M.dy); c.position.set(x,ground(x,z)-0.02,z); c.rotation.y=ry; scene.add(c); } });
+Promise.all(['castle','tower',...(HQ?['ptower','citytower']:[])].map(loadModel)).then(()=>{ for(const [k,x,z,hgt,ry] of LAND){ const M=MODELS[(k==='tower'&&MODELS.citytower&&(Math.round(ry)%2===0))?'citytower':k]; if(!M) continue; const c=new THREE.Mesh(M.geo,M.mat); c.scale.setScalar(hgt/M.dy); c.position.set(x,ground(x,z)-0.02,z); c.rotation.y=ry; scene.add(c); } });
+// ---- modely z Meshy: drobné stavby ve městech (PC) a význačná místa v krajině (všude)
+let askProps=()=>{};
+{ const P=PROPS, hs3=(a,b)=>{ const v=Math.sin(a*12.9898+b*78.233)*43758.5453; return v-Math.floor(v); };
+  P.push(['crater',HOTENOW[0],HOTENOW[1],1.5,0,-0.45],['tooth',180,4,3.2,0.8,-0.3],['oak',127.6,34.5,1.7,0,-0.05],
+    ['cragmaw',166,302,1.0,0.5,-0.05],['xinlenal',236,267,1.2,1.1,-0.08],['circle',235,256.5,0.6,0,-0.03],
+    ['reghed',24,4.6,0.2,0.3,-0.01],['reghed',31.5,-7,0.2,2.1,-0.01],['reghed',-13,9.5,0.2,4,-0.01],['gobcamp',160.5,296.5,0.5,1,-0.02],
+    ['mine',10.3,-7.2,0.32,2.4,-0.02],['mine',216.6,25.4,0.9,0,-0.05],['icecave',70,-38,1.3,2.6,-0.1]);
+  if(HQ){ for(const t of TEN){ const pl=t.plan; if(pl.plaza){ const g=tg(t,pl.plaza), rr=pl.plaza[2]*FT; P.push(['well',g[0],g[1],11*FT,0,0],['stalls',g[0]+rr*0.55,g[1]-rr*0.2,13*FT,hs3(t.x,1)*6,0]); }
+      const piers=(t.draw&&t.draw.piers)||[]; let n=0; for(let i=0;i<piers.length && n<3;i+=Math.max(1,Math.floor(piers.length/3))){ const [a,e]=piers[i], L=Math.hypot(e[0]-a[0],e[1]-a[1]); if(L<1e-4) continue; const ux=(e[0]-a[0])/L, uz=(e[1]-a[1])/L, ang=Math.atan2(ux,uz), q=18*FT;
+        if(n===0) P.push(['crane',a[0]-uz*q*0.9,a[1]+ux*q*0.9,26*FT,ang,ICE_Y]);
+        P.push([n%2?'rowboat':'trawler',e[0]+uz*q*(n%2?0.7:1.1),e[1]-ux*q*(n%2?0.7:1.1),(n%2?4:30)*FT,ang+0.2,ICE_Y-(n%2?0.2:1.2)*FT]);
+        const bx=a[0]-ux*q*2.2+uz*q*1.5, bz=a[1]-uz*q*2.2-ux*q*1.5; if(!inLake(bx,bz)) P.push([n%2?'fishrack':'iceboats',bx,bz,(n%2?12:7)*FT,ang+1.2,null]); n++; } }
+    P.push(['lighthouse',WD.isle[Math.floor(WD.isle.length/2)][0],WD.isle[Math.floor(WD.isle.length/2)][1],0.42,0,null],['lighthouse',72.5,125.4,0.6,0,null],['lighthouse',113.0,266.5,0.6,0,null],['cathedral',114.35,265.75,0.42,0.3,null],['cathedral',WD.O[0]-0.55,WD.O[1]-1.1,0.3,0.4,null]); }
+  const MK=new Set(["kelvin", "crater", "tooth", "oak", "cragmaw", "xinlenal", "circle", "reghed", "gobcamp", "mine", "icecave"]), place=(L)=>Promise.all([...new Set(L.map(p=>p[0]))].map(loadModel)).then(()=>{ for(const [k,x,z,hgt,ry,yo] of L){ const M=MODELS[k]; if(!M) continue; const c=new THREE.Mesh(M.geo,M.mat), boat=(k==='rowboat'||k==='trawler'||k==='crane');
+      c.scale.setScalar(hgt/M.dy); c.position.set(x, boat? yo : Math.max(ground(x,z),0.02)+(yo||0)*hgt, z); c.rotation.y=ry; scene.add(c); } });
+  const north=(p)=>p[2]<70; setTimeout(()=>place(P.filter(p=>MK.has(p[0])&&north(p))),HQ?1500:3500); setTimeout(()=>place(P.filter(p=>MK.has(p[0])&&!north(p))),HQ?5000:9000); let asked=false; askProps=()=>{ if(asked) return; asked=true; place(P.filter(p=>!MK.has(p[0]))); }; }
+
 // sněhové závěje u domů a hradeb v Desetiměstí (na závětrné straně)
 { const dl=HREC.filter(r=>r.tid!=='waterdeep'), per=HQ?2:1, dg=new THREE.SphereGeometry(1,12,4,0,Math.PI*2,0,Math.PI/2), dm=new THREE.MeshStandardMaterial({color:0xf3f7fc,roughness:1,metalness:0});
   const di=new THREE.InstancedMesh(dg,dm,dl.length*per), o=new THREE.Object3D(); let n=0; const hs=(i)=>{ const v=Math.sin(i*127.1+311.7)*43758.5453; return v-Math.floor(v); };
@@ -1442,10 +1476,10 @@ const SMK={n:0,list:[]}; let updateSmoke=()=>{};
     geo.setDrawRange(0,n); geo.attributes.position.needsUpdate=geo.attributes.a.needsUpdate=geo.attributes.s.needsUpdate=true;
     ggeo.setDrawRange(0,SMK.list.length); ggeo.attributes.position.needsUpdate=ggeo.attributes.a.needsUpdate=ggeo.attributes.s.needsUpdate=true; }; }
 // domy: nejbližší domy ke kameře se při přiblížení vymění za modely (jen na PC)
-const LODM={}, LOD_CAP=420, lodActive=new Set(), ZERO4=new THREE.Matrix4().makeScale(0,0,0), lodO=new THREE.Object3D(); let lodReady=false;
-const LODK=['house','inn','long','town','manor','house2','house3','house4','house5','house6','house7'];
-if(HQ) Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ if(r.k==='house'){ const v=['house','house2','house5','house3','house6','house4','house2','house7','house','house5','house3','house6'][(r.bi*7+((r.x*53)|0))%12]; if(MODELS[v]) r.k=v; } } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; });
-function updateLOD(){ if(!lodReady) return; const tx=controls.target.x, tz=controls.target.z, cand=[];
+const LODM={}, LOD_CAP=220, lodActive=new Set(), ZERO4=new THREE.Matrix4().makeScale(0,0,0), lodO=new THREE.Object3D(); let lodReady=false;
+const LODK=['house','inn','long','town','manor','house2','house3','house5','house6','house7','tavern','smithy','granary','guardhouse','temple','burgher','halftimber'];
+let lodAsked=false; function askLOD(){ if(lodAsked||!HQ) return; lodAsked=true; askProps(); Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ const hh=(r.bi*7+((r.x*53)|0)); let v=null; if(r.tid==='waterdeep'){ if(r.k==='town') v=['town','burgher','halftimber','town','burgher','halftimber','town'][hh%7]; } else if(r.k==='house') v=['house','house2','house5','house3','house6','house7','house2','house7','house','house5','house3','house6','smithy','house2','granary','house','guardhouse','house3','house5'][hh%19]; else if(r.k==='inn') v=['inn','tavern'][hh%2]; else if(r.k==='long') v=['long','temple','long'][hh%3]; if(v&&MODELS[v]) r.k=v; } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; }); }
+function updateLOD(){ if(!lodReady){ if(camD<45) askLOD(); return; } const tx=controls.target.x, tz=controls.target.z, cand=[];
   for(const r of HREC){ if(!LODM[r.k]) continue; const s=Math.max(r.w,r.l); if(camD>s*300) continue; const d=Math.hypot(r.x-tx,r.z-tz); if(d<camD*1.3+s*4) cand.push([d,r]); }
   cand.sort((a,b)=>a[0]-b[0]); const next=new Set(cand.slice(0,LOD_CAP).map(c=>c[1]));
   for(const r of lodActive) if(!next.has(r)){ bm.setMatrixAt(r.bi,r.m0); rm.setMatrixAt(r.ri,r.m1); }
@@ -1743,9 +1777,15 @@ $('btnFilm').onclick=()=>film?filmStop():filmStart();
 canvas.addEventListener('pointerdown',filmStop); window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ filmStop(); $('map2d').classList.add('hidden'); } });
 $('filmCap').addEventListener('click',filmStop);
 
+// ---- škálování výkonu: když zařízení nestíhá, sníží se rozlišení vykreslování; když má rezervu, vrátí se zpět
+const PERF={max:Math.min(window.devicePixelRatio||1, HQ?2:1.5), pr:0, acc:0, n:0, good:0, t0:performance.now()}; PERF.pr=PERF.max; PERF.min=Math.min(PERF.max, HQ?0.9:0.7);
+function perfStep(d){ if(d>0.4||performance.now()-PERF.t0<6000) return; PERF.acc+=d; if(++PERF.n<50) return; const avg=PERF.acc/PERF.n; PERF.acc=0; PERF.n=0; PERF.fps=1/avg;
+  if(avg>1/27 && PERF.pr>PERF.min){ PERF.pr=Math.max(PERF.min,PERF.pr-0.25); PERF.good=0; renderer.setPixelRatio(PERF.pr); }
+  else if(avg<1/52 && PERF.pr<PERF.max){ if(++PERF.good>=6){ PERF.pr=Math.min(PERF.max,PERF.pr+0.25); PERF.good=0; renderer.setPixelRatio(PERF.pr); } } else PERF.good=0; }
+window.__perf=()=>({pr:PERF.pr,fps:PERF.fps,calls:renderer.info.render.calls,tris:renderer.info.render.triangles});
 const clock=new THREE.Clock(); const fwd=new THREE.Vector3(); let t=0, frameN=0;
 function frame(){
-  const dt=Math.min(0.05, clock.getDelta()); t+=dt; frameN++;
+  const rawdt=clock.getDelta(), dt=Math.min(0.05, rawdt); t+=dt; frameN++; perfStep(rawdt);
   stepAnim(performance.now()); stepKeys(dt); stepFilm(performance.now()); controls.update();
   controls.target.x=clamp(controls.target.x,B.x0+5,B.x1-5); controls.target.z=clamp(controls.target.z,B.z0+5,B.z1-5); controls.target.y=clamp(controls.target.y,0,14); if(camD<80 && !anim && !film){ const gy=ground(controls.target.x,controls.target.z); controls.target.y+=(gy-controls.target.y)*0.12; }
   const gh=ground(camera.position.x, camera.position.z)+0.03; if(camera.position.y<gh) camera.position.y=gh;
