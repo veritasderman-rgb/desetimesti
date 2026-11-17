@@ -2207,32 +2207,30 @@ function treeLOD(){ const f=camD<320?1:camD<650?0.55:0.32; if(f===TREEM_F[0]) re
     LIVE.push((t)=>{ const vis=camD<40 && SEASON.sled, s=clamp(camD*0.012,0.02,0.22)/M.dy; for(const h of sl){ h.m.visible=vis; if(!vis) continue; const [x,z,a]=at(h.P,h.ph+t*0.12); if(!inLake(x,z)){ h.m.visible=false; continue; } h.m.position.set(x,ICE_Y+0.002,z); h.m.rotation.y=a; h.m.scale.setScalar(s); } }); }); }
 
 // ================================================================ Deník družiny: stopa výpravy, zastávky s kartami, písnička k plavbě
-const DIARY_SHIP=`Kdyby mi někdo před rokem řekl, že budu mít ruce až po lokty v rumu a ani kapka z něj neskončí v mém hrdle, vysmál bych se mu. Jenže to bylo před rokem. Teď cestuju s Rayem.
+const DIARY_SHIP=`3. ledna
+Vypluli jsme z Hlubiny. Loď veze zásoby pro Desetiměstí: mouku, solené maso, sudy. Kapitán kašle do rukávu a prohlíží si na něm krev.
 
-Ale popořadě.
+Na palubě s námi jede druid. Starého druida, který by si s morem věděl rady, prý někdo zastrašil, až zalezl a mlčí. Stojí za tím temní druidi. Nevím, jestli k nim ten náš nepatří.
 
-Z Hlubiny jsme vyrazili ve čtyřech. Ray je paladin Silvana a pevně věří, že všechno na světě se dá napravit, když se člověk dost snaží a pořádně se u toho mračí. Než se dal na cesty, vařil v Desetiměstí medovinu. Teď se už dva roky toulá světem, ale o medovině pořád mluví s takovou něhou, s jakou jiní mluví o ženách. Zack je goliáš a válečník a loď ho unese jen ze slušnosti. Niri je elfka a druidka. Mluví málo a dívá se hodně, což u lidí oceňuju – nejspíš proto, že sám to nedokážu. A pak jsem tu já.
+5. ledna
+Prohledali jsme náklad. Mezi zásobami byla bedna, která tam neměla co dělat. Blechy nakažené morem. Někdo je zabalil a poslal lidem, kteří na severu i tak hladoví.
 
-Kapitán se mi nelíbil od první chvíle. Lidi, kteří něco tají, poznám na sto honů, koneckonců jsem jedním z nich. Jenže kapitán netajil nic zajímavého. Byl prostě nemocný. Kašlal do rukávu, a když si myslel, že se nikdo nedívá, prohlížel si na něm krev.
+Kapitán není jediný nemocný. Kašle víc lidí.
 
-Pak jsme se pustili do nákladu. Zásoby pro Desetiměstí – mouka, solené maso, sudy – a mezi nimi bedna, která tam rozhodně neměla co dělat. Blechy. A ne ledajaké blechy, ale blechy s morem. Někdo si dal tu práci, zabalil je a poslal lidem, kteří na severu i tak živoří na hraně hladu. V Trhově by se za takový nápad styděli, a to už je co říct.
+Ray vzal sud rumu a vydrhl paluby, náklad i posádku. Pak zapálil vykuřovadlo a jednoho po druhém je vyudil jako šunky. Zack se mezitím zhulil s kormidelníkem.
 
-A kapitán nebyl sám. Kašlalo víc lidí, než by se člověku líbilo.
+Sleduju toho druida. Jak jí, jak se dívá na vodu, jak mluví s Niri. Na nic jsem nepřišel. Katju jsem kdysi taky neprokoukl a stálo to Fenjiho a Truxe.
 
-Tady přišla Rayova velká chvíle. Nevím, jestli mu to poradil Silvanus, nebo na to přišel sám, ale vzal sud rumu a začal drhnout. Tvářil se přitom jako člověk, který by mnohem radši držel v ruce medovinu, ale chápe, že na blechy je rum to pravé. Drhnul paluby, náklad, posádku. Hlavně posádku. Námořníci protestovali jen do chvíle, kdy jim došlo, že trocha se dá i vypít. Potom Ray zapálil vykuřovadlo a jednoho po druhém je vyudil jako šunky. Tvářil se u toho tak vážně, že jsem se musel otočit k zábradlí, aby neviděl, jak se směju. Nejhorší na tom je, že to zabralo.
+7. ledna
+Mor ustupuje. Rum a kouř zabraly, nikdo další neonemocněl. Ray už plánuje, jakou medovinou to oslavíme.`;
+const DIARY_FIRE=`19. ledna, Fireshear
+Na palubě už nikdo nekašle krev. Mor jsme porazili.
 
-My ostatní jsme mezitím měli jinou starost. Na lodi s námi totiž jel druid. To by samo o sobě nic neznamenalo, jenže jsme se dozvěděli, že starého druida, který by si s morem věděl rady, někdo zastrašil, až zalezl a mlčí. A za celou tou věcí stojí temní druidi. Otázka tedy zněla: je náš spolucestující jen chlapík, co si rád povídá se stromy, nebo je to jejich člověk?
+Město hoří. Přepadli ho ledoví obři, podle všeho jen pár hodin před námi. Jejich loď jsme ještě viděli mizet na obzoru. Je obrovská, jako by se ledovec vydal na moře.
 
-Sledoval jsem ho. Jak jí, jak se dívá na vodu, jak se baví s Niri. Čekal jsem na ten okamžik, kdy se mu úsměv nesejde s očima. Jednou už jsem takový okamžik přehlédl. Jmenovala se Katja a stálo mě to Fenjiho a Truxe. Podruhé se mi to nestane – nebo si to aspoň budu dál opakovat.
+Jednu pohromu jsme zastavili a druhá nás předběhla. Oslava s medovinou se odkládá.
 
-Na nic jsem nepřišel. Zrádce se podle obličeje nepozná, to vím líp než kdo jiný. Já si obličeje měním jako jiní košile.`;
-const DIARY_FIRE=`A pak jsme připluli do Fireshearu.
-
-Mor jsme porazili. Na palubě už nikdo nekašle krev a Ray je na sebe právem trochu pyšný – dokonce už začal plánovat, jakou medovinou to oslavíme. Radost nám ale vydržela přesně do chvíle, kdy jsme uviděli přístav. Město hořelo. A na obzoru se vzdalovala loď ledových obrů – obrovská, jako by se ledovec rozhodl, že si vyrazí na moře. Podle všeho tu byli jen pár hodin před námi.
-
-Jednu pohromu jsme tedy zastavili a druhá nás mezitím předběhla. Tak už to se mnou chodí. Oslava s medovinou se bude muset odložit.
-
-Nemesis, jestli posloucháš: snažím se být trpělivý, opravdu. Ale ten seznam dlužníků mi poslední dobou nějak rychle roste.`;
+Nemesis, snažím se být trpělivý. Ale seznam dlužníků roste.`;
 const TURGEN_STORY=`Dítě dvou nocí
 Turgen se narodil roku 1470 jako syn dvou velmi rozdílných rodičů. Otec Tamis je měňavec, zloděj a mocný mág, který zná tajemství sfér a Sigilu. Dnes slouží Chronosovi jako ochránce jeho bludiště. Matka Gatria je drowka a kněžka Eilistraee. Po otci zdědil Turgen schopnost měnit tvář, po matce temnozrak a drowí krev. Nepatří tak úplně do žádného světa.
 
@@ -2270,7 +2268,7 @@ Turgen je na 4. úrovni, právě se odvrátil od Masky k Nemesis a s družinou d
      txt:"4. prosince\nCestou do Goldenfields jsme minuli karavanu. Vozy obyčejné, lidé kolem nich ne. Hlídali si náklad víc, než by kupci museli. Tipuju Zhentarim, ale jistý si nejsem.\n\nNoc na 5. prosince\nU tábora se objevil drow. Nikdo ho neviděl přicházet. Nepředstavil se, ale časem jsme zjistili, že to byl nejspíš Elis Dewin, majitel krčmy Crawling Spider v Hlubině. Co dělal v noci na cestě, neřekl, a odešel dřív, než jsem se stihl zeptat podruhé.\n\nMěl s sebou celkem velkou partu divných lidí."},
     {n:'③',t:'Goldenfields – spiknutí a bitva',sub:'Turgenův deník · 5.–8. 12.',x:G.x,z:G.z,dy:1.6,d:7,
      txt:"5. prosince, Goldenfields\nHned u brány jsme každý dostali semeno vlastního stromu. Nevím, co s ním, ale nosím ho u sebe.\n\nSemila Southwilla jsme našli. Pověděl nám, co se na severu děje, a dal nám mapu Severu a Desetiměstí.\n\nHorší zpráva: do Goldenfields se někdo dostal zevnitř, nejspíš Zhentarim. Šli jsme s tím za opatem Ellardinem Darovikem. Vyslechl nás a neudělal nic. Jeho zástupkyně Zi Liang nás brala vážně.\n\n6. prosince\nZaútočili skřeti. Obranu vedla Zi Liang, opat do toho nemluvil.\n\nPomohl nám Lifferlas, zdejší ent. Stáhl na sebe ty největší, co s sebou skřeti přivedli, a držel je, dokud jsme si neporadili se zbytkem. Bez něj bychom to měli o dost těžší.\n\nGoldenfields stojí. Poprvé mi došlo, že chránit něco, co roste, není o tolik jiné než hlídat záda přátelům.\n\nHobit Oren Yogilvy o nás složil píseň.\n\n8. prosince\nNávrat do Hlubiny."},
-    {n:'④',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3.–19. 1. · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:'3. ledna odjezd z Hlubiny · 5. ledna objeven mor · 7. ledna mor ustupuje\n\n'+DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
+    {n:'④',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3.–7. 1. · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
     {n:'⑤',t:'Fireshear v plamenech',sub:'Turgenův deník · 19. 1.',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
   // karta: dlouhý text s odstavci a přehrávač písně
   const st=document.createElement('style'); st.textContent='.lbl.diary{font:700 13px/1 Inter,system-ui,sans-serif;color:#2a1c05;background:#f2c14e;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5);text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap} body.nodiary .lbl.diary{display:none!important} #info.diary #infoDesc{white-space:pre-line;max-height:42vh;overflow-y:auto;padding-right:6px}'; document.head.appendChild(st);
