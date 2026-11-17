@@ -549,9 +549,16 @@ const RIVERS = [
   {p:pp('(481,241.8)(455.8,232.4)(429.8,229.3)(405.1,222)(394,221.1)')},   // Laughingflow
   {p:pp('(660,243)(645,230.7)(630.2,209)(636.3,190.9)(610.1,182.8)(584,184.2)(548.9,167.2)(518.1,150.6)(491.8,140.2)')},   // Rauvin
   {p:pp('(535.7,311.7)(516.8,315.4)(492.8,316.5)(463.8,310.1)(434.6,300.7)(411.8,301.4)(392,307)')},   // Dessarin (horní tok)
-  {p:pp('(167,176)(184.7,193.3)(194.2,209.3)(213.7,226.7)(233.4,239.9)(255,246.2)')},   // Morgur
+  {p:pp('(176,158)(167,176)(184.7,193.3)(194.2,209.3)(200,230)(196,250)(192,256)')},   // Morgur
 
-  {p:pp('(150,232)(135,250)(122,262)(110,267)')},
+  {p:pp('(141,205)(151,203)(160,214)(170,230)(180,245)(192,256)(175,259)(157,264)(140,263)(122,263)(110,267)')},   // Letohradská řeka od hory Hotenow
+  {p:pp('(285,250)(255,246.2)(233.4,239.9)(213.7,236)(200,248)(192,256)')},   // Berunova řeka
+  {p:pp('(4.2,7.6)(0,10.5)(-7,13)(-14,12.5)(-22,8)(-25,2)'), frozen:true},   // Redrun z Rudých vod do Shaengarne
+  {p:pp('(318,-5)(310,8)(295,21)(280,33)(255,45)(229,53.5)')},   // horní Mirar údolím Khedrun
+  {p:pp('(600,345)(570,325)(535.7,311.7)')},   // pramen Dessarinu ve Vysokém hvozdu
+  {p:pp('(650,412)(590,440)(530,460)(478,470)')},   // horní Delimbiyr
+  {p:pp('(530,372)(505,410)(478,445)(452,474)')},   // Jednorožčí běh
+
   {p:pp('(517.4,52.6)(508.1,74)(500,112)(491.8,140.2)(465.1,129.8)(439,119.8)(434.5,136.4)(432.3,152.9)(430.7,177.3)(421.4,198.2)(403.8,211.3)(394,221)(392,307)(375,340)(360,375)(349,412)(337,427)(326,446)(315,465)(306,482)(303,497)')},
   {p:pp('(478,470)(447,481)(420,492)(380,503)(342,509)(330,514)')},
 ];
@@ -1154,10 +1161,12 @@ CITIES.filter(t=>!t.custom).forEach(buildTown);
 // lesy
 {
   const TQ=HQ?1.6:0.6;
+  const RVB=RIVERS.map(R=>{ let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9; for(const p of R.p){ x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); z0=Math.min(z0,p[1]); z1=Math.max(z1,p[1]); } return [x0-2,x1+2,z0-2,z1+2,R.p]; }), riverD=(x,z)=>{ let m=1e9; for(const b of RVB){ if(x<b[0]||x>b[1]||z<b[2]||z>b[3]) continue; m=Math.min(m,distPoly(x,z,b[4])); } return m; };
   FORESTS.forEach((F,fi)=>{ const r=mulberry(50+fi), want=Math.round(F[4]*TQ); let placed=0, tries=0;
     while(placed<want && tries<want*12){ tries++; let x, z; if(F[6]!=null){ const q=FPOLY[F[6]].bb; x=q[0]+r()*(Math.min(q[1],B.x1)-q[0]); z=q[2]+r()*(Math.min(q[3],B.z1)-q[2]); } else { const a=r()*Math.PI*2, d=Math.sqrt(r())*1.08; x=F[0]+Math.cos(a)*d*F[2]; z=F[1]+Math.sin(a)*d*F[3]; }
       if(x<B.x0+3||x>B.x1-3||z<B.z0+3||z>B.z1-3) continue; if(forestV(x,z)<0.03) continue; const h=meshH(x,z); if(h<0.03 || h>4.2) continue;
       if(F[5]<1 && (inLake(x,z) || roadD(x,z)<0.03)) continue;
+      if(F[5]>1 && riverD(x,z)<1.25) continue;   // řeky v lesích nesmí zmizet pod korunami
       if(ALL.some(t=>Math.hypot(x-t.x,z-t.z)<(t.site&&F[5]>1?Math.max(1.7,t.r*1.08):t.r*1.08))) continue; if(F[5]>1 && Math.hypot(x-160.5,z-296.5)<1.5) continue;
       TREES.push([x,z,F[5]*(0.7+r()*0.7),fi]); placed++; } });
   // stromy: pět druhů, instancované po lesích (aby se celé lesy mimo záběr nekreslily); na mobilu zjednodušené tvary
@@ -1358,7 +1367,7 @@ addLabel('Desetiměstí', 6,-2,1.5, 'city big', {click:()=>flyView('dale'), min:
  ['řeka Shaengarne',-14,-1,0.2,'small',60],['Lonelywoodský hvozd',4,-12.4,0.4,'small',30],['Drahokamový důl',5.2,-8.0,0.2,'small',14],
  ['Desátá stezka',-5.2,8.5,0.4,'small',70,10],['Reghedský ledovec',75,-35,3,'',500],['Moře pohyblivého ledu',-45,-45,1.5,'',600],
  ['Páteř světa',150,4,14,'huge',1e9,90],['Údolí ledového větru',-18,-7,0.6,'',400,45],
- ['Severní stezka',22,74,2,'small',420],['Ice Peak',-171,50,7,'',1e9,60],['Icefang Point',-106,60,2,'small',420],['Cold Run',-66,58,2,'small',300],['Železná stezka',-46,30,2,'small',260],['Redrun',-14,13.5,0.5,'small',70],['Klauthen Vale',84,18,6,'small',420],['Ledová jezera',99,69,2,'small',420],['Měsíční hvozd',625,85,4,'',1000000000.0],['Stříbrný les',610,217,2,'small',420],['Mrazivé kopce',503,88,2,'small',420],['Fell Pass',517,42,2,'small',420],['Země proti zdi',548,34,2,'small',420],['Království mnoha šípů',548,-22,3,'small',700],['řeka Rauvin',563,172,2,'small',420],['Rauvinská cesta',578,192,2,'small',300],['Cesta Věčnými blaty',563,281,2,'small',420],['Menzoberranzan (hluboko pod zemí)',604,128,2,'small',300],['Surbrinská stezka',430,191,2,'small',420],['Průsmyk Kuldahar',101,-2,2,'small',420],['Údolí stínů',143,-20,2,'small',420],['Fireshear Vale',-25,84,2,'small',420],['řeka Black Raven',141,49,2,'small',420],['Uthgardtské kopce',244,141,2,'small',420],['řeka Goblintide',423,139,2,'small',420],['potok Shining',400,147,2,'small',420],['řeka Laughingflow',421,227,2,'small',420],['Ztracené kopce',248,305,2,'small',420],['řeka Berun',255,241,2,'small',420],['řeka Morgur',184,186,2,'small',420],['řeka Surbrin',382,272,2,'small',420],['Zátoka mlh',86,262,2,'small',420],['Jundarův kopec',358,318,2,'small',420],['Údolí rothé',116,236,2,'small',420],['řeka Iceflow',0,77,2,'small',300],['Údolí Khedrun',332,23,6,'small',520],['Věčná blata',506,212,3,'',900],['Stormwreck Isle',101,299,1.5,'small',300],['Ještěří močál',326,519,2,'small',260],['Moře mečů',40,330,3,'huge',1e9,200],['Letohradský hvozd',185,228,4,'',900],['hora Hotenow',139.5,202.7,10,'small',520],
+ ['Severní stezka',22,74,2,'small',420],['Ice Peak',-171,50,7,'',1e9,60],['Icefang Point',-106,60,2,'small',420],['Cold Run',-66,58,2,'small',300],['Železná stezka',-46,30,2,'small',260],['Redrun',-14,13.5,0.5,'small',70],['Klauthen Vale',84,18,6,'small',420],['Ledová jezera',99,69,2,'small',420],['Letohradská řeka',136,258,2,'small',300],['Jednorožčí běh',500,418,2,'small',420],['řeka Mirar',272,36,2,'small',420],['Měsíční hvozd',625,85,4,'',1000000000.0],['Stříbrný les',610,217,2,'small',420],['Mrazivé kopce',503,88,2,'small',420],['Fell Pass',517,42,2,'small',420],['Země proti zdi',548,34,2,'small',420],['Království mnoha šípů',548,-22,3,'small',700],['řeka Rauvin',563,172,2,'small',420],['Rauvinská cesta',578,192,2,'small',300],['Cesta Věčnými blaty',563,281,2,'small',420],['Menzoberranzan (hluboko pod zemí)',604,128,2,'small',300],['Surbrinská stezka',430,191,2,'small',420],['Průsmyk Kuldahar',101,-2,2,'small',420],['Údolí stínů',143,-20,2,'small',420],['Fireshear Vale',-25,84,2,'small',420],['řeka Black Raven',141,49,2,'small',420],['Uthgardtské kopce',244,141,2,'small',420],['řeka Goblintide',423,139,2,'small',420],['potok Shining',400,147,2,'small',420],['řeka Laughingflow',421,227,2,'small',420],['Ztracené kopce',248,305,2,'small',420],['řeka Berun',255,241,2,'small',420],['řeka Morgur',184,186,2,'small',420],['řeka Surbrin',382,272,2,'small',420],['Zátoka mlh',86,262,2,'small',420],['Jundarův kopec',358,318,2,'small',420],['Údolí rothé',116,236,2,'small',420],['řeka Iceflow',0,77,2,'small',300],['Údolí Khedrun',332,23,6,'small',520],['Věčná blata',506,212,3,'',900],['Stormwreck Isle',101,299,1.5,'small',300],['Ještěří močál',326,519,2,'small',260],['Moře mečů',40,330,3,'huge',1e9,200],['Letohradský hvozd',185,228,4,'',900],['hora Hotenow',139.5,202.7,10,'small',520],
  ['Skaliska',186,134,3,'small',520],['Lurkwood',350,78,4,'small',760],['Mečové hory',222,380,10,'',900],['Močál mrtvých',206,399,2,'small',520],
  ['Kryptgarden',283,368,4,'small',520],['Westwood',295,403,3,'small',420],['Vysoký hvozd',560,400,5,'',1e9,120],['Forlorn Hills',398,448,5,'small',700],
  ['Sumber Hills',348,378,4,'small',520],['Surbrin Hills',343,172,4,'small',700],['Starmetal Hills',273,226,4,'small',520],
