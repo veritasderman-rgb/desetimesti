@@ -746,6 +746,12 @@ function axis(a0,a1,b0,b1,fine,maxStep,g){
 const XS = axis(B.x0,B.x1,-7,22,HQ?0.15:0.24,HQ?2.0:3.6,1.07), ZS = axis(B.z0,B.z1,-13.5,9,HQ?0.15:0.24,HQ?2.0:3.6,1.07);
 { const add=(arr,a,b,st)=>{ for(let v=a; v<=b; v+=st) arr.push(v); arr.sort((p,q)=>p-q); for(let i=arr.length-1;i>0;i--) if(arr[i]-arr[i-1]<st*0.45) arr.splice(i,1); };
   add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,469.6,481.2,HQ?0.14:0.24); }      // jemná mřížka pod Hlubinou
+const SEASONS={
+  winter:{id:'winter',name:'zima',zA:330,zB:105,eA:2.2,eB:4.5,patch:1,green:0,seaA:105,seaB:45,ice:true,dale:2,road:14,southT:-2,refT:-22,sled:true},
+  spring:{id:'spring',name:'jaro',zA:120,zB:10,eA:3.5,eB:6.5,patch:0.45,green:0.3,seaA:60,seaB:0,ice:true,dale:2.5,road:20,southT:9,refT:-3,sled:true},
+  summer:{id:'summer',name:'léto',zA:-150,zB:-260,eA:7.5,eB:11,patch:0,green:0.75,seaA:-45,seaB:-95,ice:false,dale:3,road:24,southT:21,refT:8,sled:false},
+  autumn:{id:'autumn',name:'podzim',zA:160,zB:30,eA:3,eB:6,patch:0.55,green:0.1,seaA:70,seaB:10,ice:false,dale:2.5,road:20,southT:8,refT:-8,sled:false}};
+let SEASON=SEASONS.winter, paintTerrain=()=>{}, paintSea=()=>{}; const SEASON_OBJ={lakes:[],floes:null,drifts:null,iceMat:null,waterMat:null};
 const NX=XS.length, NZ=ZS.length;
 const HH=new Float32Array(NX*NZ);
 function findIdx(arr,v){ let lo=0, hi=arr.length-2; if(v<=arr[0]) return 0; if(v>=arr[hi+1]) return hi; while(lo<hi){ const m=(lo+hi+1)>>1; if(arr[m]<=v) lo=m; else hi=m-1; } return lo; }
@@ -764,20 +770,21 @@ const ground=(x,z)=>Math.max(meshH(x,z),0);
   const snowC=new THREE.Color(0xeef3fb), rockC=new THREE.Color(0x565c68), glC=new THREE.Color(0xb3d7f2), crev=new THREE.Color(0x5f8fb8), shore=new THREE.Color(0xc5d3e4),
         grassA=new THREE.Color(0xa39f7c), grassB=new THREE.Color(0x848a68), forestC=new THREE.Color(0x33453a), mereC=new THREE.Color(0x4d5a4c), moorC=new THREE.Color(0x77705e);
   const c=new THREE.Color(), g=new THREE.Color();
-  for(let k=0;k<n;k++){ const x=pos[k*3], h=pos[k*3+1], z=pos[k*3+2], slope=1-nor.getY(k);
-    const north = smooth(330,105, z + (fbm(x*0.02,z*0.02,3)-0.5)*120 - Math.max(0,x-220)*0.2);
-    const sn = Math.max(north, smooth(2.2,4.5,h), 0.18+0.6*smooth(0.42,0.68,fbm(x*0.035+1,z*0.035,3))+0.08*fbm(x*0.4,z*0.4,2));
-    g.copy(grassA).lerp(grassB, fbm(x*0.05,z*0.05,3));
+  const greenC=new THREE.Color(0x6f8748);
+  paintTerrain=function(SS){ for(let k=0;k<n;k++){ const x=pos[k*3], h=pos[k*3+1], z=pos[k*3+2], slope=1-nor.getY(k);
+    const north = smooth(SS.zA,SS.zB, z + (fbm(x*0.02,z*0.02,3)-0.5)*120 - Math.max(0,x-220)*0.2);
+    const sn = Math.max(north, smooth(SS.eA,SS.eB,h), SS.patch*(0.18+0.6*smooth(0.42,0.68,fbm(x*0.035+1,z*0.035,3))+0.08*fbm(x*0.4,z*0.4,2)));
+    g.copy(grassA).lerp(grassB, fbm(x*0.05,z*0.05,3)); if(SS.green) g.lerp(greenC, SS.green*(0.45+0.55*fbm(x*0.09+3,z*0.09,2)));
     const mv = 1-Math.hypot((x-MOORS[0])/MOORS[2],(z-MOORS[1])/MOORS[3]); if(mv>0) g.lerp(moorC, smooth(0,0.35,mv));
     const me = 1-Math.hypot((x-MERE[0])/MERE[2],(z-MERE[1])/MERE[3]) + (vnoise(x*0.3,z*0.3)-0.5)*0.4; if(me>0 && h>0) g.lerp(mereC, smooth(0,0.3,me));
     const fv = forestV(x,z); if(fv>0) g.lerp(forestC, smooth(0,0.25,fv)*0.75);
     c.copy(g).lerp(snowC, clamp(sn - (fv>0?0.12:0) - (me>0?0.2:0),0,1));
     c.multiplyScalar(0.95+0.05*fbm(x*0.6,z*0.6,2));
     const rk = smooth(0.2,0.5,slope*SLK)*(h>1.6?1:0.4)*(1-smooth(8,20,h)*0.35); rock.copy(rockC).lerp(rockD, fbm(x*0.16,z*0.16,2)*0.6).multiplyScalar(0.9+0.1*Math.sin(h*2.3)); c.lerp(rock, rk*0.92);
-    if(h<0.14 && h>-0.2 && ldA[k]>-3 && ldA[k]<3) c.lerp(shore, 0.55);
+    if(h<0.14 && h>-0.2 && ldA[k]>-3 && ldA[k]<3) c.lerp(shore, 0.55*Math.max(0.15,SS.patch));
     if(glA[k]>0.05){ c.lerp(glC, glA[k]*0.85); if(glA[k]>0.5 && ridged(x*0.5,z*1.1,2)>0.92) c.lerp(crev,0.6); }
-    col[k*3]=c.r; col[k*3+1]=c.g; col[k*3+2]=c.b; }
-  geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+    col[k*3]=c.r; col[k*3+1]=c.g; col[k*3+2]=c.b; } if(geo.attributes.color) geo.attributes.color.needsUpdate=true; };
+  geo.setAttribute('color', new THREE.BufferAttribute(col,3)); paintTerrain(SEASON);
   scene.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({vertexColors:true, flatShading:true, roughness:0.93, metalness:0})));
 }
 const W=B.x1-B.x0, D=B.z1-B.z0, CX=(B.x0+B.x1)/2, CZ=(B.z0+B.z1)/2;
@@ -788,16 +795,16 @@ mist.rotation.x=-Math.PI/2; mist.position.y=-4; scene.add(mist);
 // moře: led na severu, volná voda na jihu
 {
   const cw=512, ch=Math.round(512*D/W), cv=document.createElement('canvas'); cv.width=cw; cv.height=ch; const g=cv.getContext('2d'); const img=g.createImageData(cw,ch), d=img.data;
-  for(let j=0;j<ch;j++){ const z=B.z0+(j+0.5)/ch*D, cxz=coastX(z); for(let i=0;i<cw;i++){ const x=B.x0+(i+0.5)/cw*W;
-    const ice=smooth(105,45, z + (fbm(x*0.03,z*0.03,3)-0.5)*60);
+  let tx=null; paintSea=function(SS){ for(let j=0;j<ch;j++){ const z=B.z0+(j+0.5)/ch*D, cxz=coastX(z); for(let i=0;i<cw;i++){ const x=B.x0+(i+0.5)/cw*W;
+    const ice=smooth(SS.seaA,SS.seaB, z + (fbm(x*0.03,z*0.03,3)-0.5)*60);
     const n=vnoise(x*0.33+4,z*0.33), floe=smooth(0.3-ice*0.12,0.38-ice*0.12,n);
     const a=ice*(0.25+0.75*floe);
     const wv=fbm(x*0.025,z*0.025,3), sh=smooth(22,0,cxz-x);
     const wr=18+wv*14+sh*26, wg=40+wv*22+sh*40, wb=62+wv*26+sh*38;
     const iv=vnoise(x*0.9,z*0.9), ir=200+iv*34, ig=220+iv*24, ib=236+iv*14;
     const k=(j*cw+i)*4; d[k]=wr+(ir-wr)*a; d[k+1]=wg+(ig-wg)*a; d[k+2]=wb+(ib-wb)*a; d[k+3]=255; } }
-  g.putImageData(img,0,0);
-  const tx=new THREE.CanvasTexture(cv); tx.colorSpace=THREE.SRGBColorSpace; tx.anisotropy=4;
+  g.putImageData(img,0,0); if(tx) tx.needsUpdate=true; }; paintSea(SEASON);
+  tx=new THREE.CanvasTexture(cv); tx.colorSpace=THREE.SRGBColorSpace; tx.anisotropy=4;
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(W,D), new THREE.MeshStandardMaterial({map:tx, roughness:0.35, metalness:0.1}));
   sea.rotation.x=-Math.PI/2; sea.position.set(CX,0,CZ); scene.add(sea);
 }
@@ -813,7 +820,8 @@ mist.rotation.x=-Math.PI/2; mist.position.y=-4; scene.add(mist);
   const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; t.repeat.set(0.3,0.3);
   const mat=new THREE.MeshStandardMaterial({map:t, roughness:0.22, metalness:0.12, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2});
   for(const L of LAKES){ const sh=new THREE.Shape(); L.pts.forEach((p,i)=> i? sh.lineTo(p[0],p[1]) : sh.moveTo(p[0],p[1])); const geo=new THREE.ShapeGeometry(sh); geo.rotateX(Math.PI/2);
-    const m=new THREE.Mesh(geo,mat); m.position.y=ICE_Y-0.004; scene.add(m); }
+    const m=new THREE.Mesh(geo,mat); m.position.y=ICE_Y-0.004; scene.add(m); SEASON_OBJ.lakes.push(m); }
+  SEASON_OBJ.iceMat=mat; SEASON_OBJ.waterMat=new THREE.MeshStandardMaterial({color:0x4d8dbd, roughness:0.2, metalness:0.15, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2});
 }
 // kry
 {
@@ -822,7 +830,7 @@ mist.rotation.x=-Math.PI/2; mist.position.y=-4; scene.add(mist);
   while(k<N && tries<30000){ tries++; const far=r()<0.5; const x= far? B.x0+r()*(W*0.5) : -30+r()*45, z= far? B.z0+r()*150 : -40+r()*27;
     if(meshH(x,z)>-0.3) continue; const s=(far?1.2:0.2)+r()*(far?3:0.7);
     o.position.set(x, 0.02, z); o.rotation.set(r()*0.4, r()*Math.PI, r()*0.4); o.scale.set(s, 0.1+r()*0.22*s, s*(0.6+r()*0.8)); o.updateMatrix(); im.setMatrixAt(k++, o.matrix); }
-  im.count=k; scene.add(im);
+  im.count=k; scene.add(im); SEASON_OBJ.floes=im;
 }
 
 // cesty a řeky (šířka roste se vzdáleností od Desetiměstí, aby byly vidět i z dálky)
@@ -1323,7 +1331,7 @@ Promise.all(['castle','tower',...(HQ?['ptower']:[])].map(loadModel)).then(()=>{ 
   const di=new THREE.InstancedMesh(dg,dm,dl.length*per), o=new THREE.Object3D(); let n=0; const hs=(i)=>{ const v=Math.sin(i*127.1+311.7)*43758.5453; return v-Math.floor(v); };
   dl.forEach((r,i)=>{ for(let j=0;j<per;j++){ const s=Math.max(r.w,r.l), a=(j?2.5:-0.6)+hs(i*3+j)*0.9, d=s*(0.55+hs(i*5+j)*0.25), x=r.x+Math.cos(a)*d, z=r.z+Math.sin(a)*d; if(inLake(x,z)) continue;
     o.position.set(x,ground(x,z)-s*0.02,z); o.rotation.set(0,a+1.2,0); o.scale.set(s*(0.38+hs(i+j)*0.28), s*(0.14+hs(i*7+j)*0.14), s*(0.24+hs(i*11+j)*0.16)); o.updateMatrix(); di.setMatrixAt(n++,o.matrix); } });
-  di.count=n; di.receiveShadow=true; scene.add(di); }
+  di.count=n; di.receiveShadow=true; scene.add(di); SEASON_OBJ.drifts=di; }
 // kouř z komínů a teplá záře oken (za věčné noci) u domů poblíž kamery
 const SMK={n:0,list:[]}; let updateSmoke=()=>{};
 { const MAXH=HQ?220:70, PER=3, N=MAXH*PER, pos=new Float32Array(N*3), al=new Float32Array(N), sz=new Float32Array(N), geo=new THREE.BufferGeometry();
@@ -1424,7 +1432,7 @@ function setWeather(w, roll){
   $('die').textContent= roll? String(roll) : 'd20';
   const ul=$('wxRules'); ul.innerHTML='';
   for(const [txt,hb] of w.rules){ const li=document.createElement('li'); if(hb){ li.className='hb'; li.innerHTML='<span class="hbtag">Homebrew:</span> '; } li.appendChild(document.createTextNode(txt)); ul.appendChild(li); }
-  for(const a of ALWAYS){ const li=document.createElement('li'); li.textContent=a; ul.appendChild(li); }
+  for(const a of (w.t<=-18?ALWAYS:[])){ const li=document.createElement('li'); li.textContent=a; ul.appendChild(li); }
   chipsEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.id===w.id));
   const on=chipsEl.querySelector('.chip.on'); if(on) chipsEl.scrollTo({left:on.offsetLeft-40, behavior:'smooth'});
   if(window.__probeReady) renderProbe();
@@ -1457,7 +1465,7 @@ function setRoute(){ mA=byId[$('mFrom').value]||null; mB=byId[$('mTo').value]||n
 function pickTown(t){ if(!mA||mB){ $('mFrom').value=t.id; $('mTo').value=''; } else $('mTo').value=t.id; setRoute(); }
 function townClick(t){ if(measuring) pickTown(t); else { closeProbe(); selectPlace(t); } }
 const WXF={clear:1,flurries:1,snow:0.75,wind:0.85,blizzard:0.5,whiteout:0.25};
-const WXN={clear:'běžné zimní tempo.',flurries:'běžné zimní tempo.',snow:'čerstvý sníh, tempo ×¾ (homebrew).',wind:'proti větru tempo ×0,85 (homebrew).',blizzard:'tempo poloviční, každou hodinu Přežití SO 15, jinak skupina bloudí.',whiteout:'tempo čtvrtinové (homebrew); rozumnější je přečkat v úkrytu.'};
+const WXN={clear:'běžné tempo.',flurries:'běžné tempo.',snow:'čerstvý sníh, tempo ×¾ (homebrew).',wind:'proti větru tempo ×0,85 (homebrew).',blizzard:'tempo poloviční, každou hodinu Přežití SO 15, jinak skupina bloudí.',whiteout:'tempo čtvrtinové (homebrew); rozumnější je přečkat v úkrytu.'};
 function drawMeasure(){
   const seq = mRoute ? mRoute.pts.map(p=>({x:p[0],z:p[1],y:ground(p[0],p[1])})) : mPts;
   const dense=[]; let total=0; const lift=0.03+camD*0.002;
@@ -1469,9 +1477,9 @@ function drawMeasure(){
   const el=$('measureTxt');
   if(mRoute){ const {dale,rest}=mRoute, tot=dale+rest;
     const W=state.weather, wf=WXF[W.id]||1, wn=`<br><span class="note">Počasí: <b>${W.name}</b> – ${WXN[W.id]}</span>`, dd=h=> h<=8? fmtH(h) : `${fmtH(h)} chůze = ${Math.ceil(h/8)} ${Math.ceil(h/8)<5?"dny":"dní"} pochodu (8 h denně)`;
-    if(rest<1) el.innerHTML=`<b>${mA.name} → ${mB.name}</b><br>po cestě ≈ <b>${cz(Math.round(tot*2)/2,(Math.round(tot*2)/2)%1?1:0)} mil</b><br>pěšky ≈ <b>${dd(tot/2/wf)}</b> · se spřežením ≈ ${fmtH(tot/4/wf)}`+wn;
-    else { const wdays=(dale/2/8+rest/14)/wf, best=dale/2/8+rest/14;
-      el.innerHTML=`<b>${mA.name} → ${mB.name}</b><br>po cestách ≈ <b>${Math.round(tot/5)*5} mil</b> · pěšky ≈ <b>${Math.max(1,Math.round(wdays))} dní</b>`+(wf<1?` <span class="note">(za dobrého počasí ${Math.max(1,Math.round(best))})</span>`:'')+(dale>3?`<br><span class="note">z toho ${Math.round(dale)} mil sněhem a horami Desetiměstí (2 míle/h), dál zimní cestou 14 mil/den</span>`:'')+wn+`<br><span class="note">Na víc dní se počasí mění – hoď si d20 na každý den.</span>`; } }
+    if(rest<1) el.innerHTML=`<b>${mA.name} → ${mB.name}</b><br>po cestě ≈ <b>${cz(Math.round(tot*2)/2,(Math.round(tot*2)/2)%1?1:0)} mil</b><br>pěšky ≈ <b>${dd(tot/SEASON.dale/wf)}</b>`+(SEASON.sled?` · se spřežením ≈ ${fmtH(tot/SEASON.dale/2/wf)}`:"")+wn;
+    else { const wdays=(dale/SEASON.dale/8+rest/SEASON.road)/wf, best=dale/SEASON.dale/8+rest/SEASON.road;
+      el.innerHTML=`<b>${mA.name} → ${mB.name}</b><br>po cestách ≈ <b>${Math.round(tot/5)*5} mil</b> · pěšky ≈ <b>${Math.max(1,Math.round(wdays))} dní</b>`+(wf<1?` <span class="note">(za dobrého počasí ${Math.max(1,Math.round(best))})</span>`:'')+(dale>3?`<br><span class="note">z toho ${Math.round(dale)} mil Desetiměstím a horami (${cz(SEASON.dale,SEASON.dale%1?1:0)} míle/h), dál ${SEASON.road} mil/den (${SEASON.name})</span>`:'')+wn+`<br><span class="note">Na víc dní se počasí mění – hoď si d20 na každý den.</span>`; } }
   else if(mA && !mB) el.innerHTML=`Z: <b>${mA.name}</b> – vyber cíl (v seznamu nebo klepnutím na město).`;
   else if(!mPts.length) el.innerHTML='Vyber dvě města, nebo klepej do mapy pro volnou trasu.';
   else if(mPts.length===1) el.textContent='Klepni na další bod.';
@@ -1508,7 +1516,7 @@ function terrKind(p){ const x=p.x, z=p.z;
   if(FARMS.some(F=>Math.hypot((x-F[0])/F[2],(z-F[1])/F[3])<1)) return ['open','pole a pastviny'];
   return ['open', e>90?'pahorkatina':'pláně']; }
 function tempAt(p){ const w=state.weather, [kind,name]=terrKind(p), e=elevM(p.y), south=smooth(40,480,p.z);
-  let T = w.t + ((-2+(w.t+22)*0.35) - w.t)*south;          // k jihu se otepluje (Hlubina kolem −2 °C při běžném počasí)
+  let T = w.t + ((SEASON.southT+(w.t-SEASON.refT)*0.35) - w.t)*south;          // k jihu se otepluje (Hlubina kolem −2 °C při běžném počasí)
   T -= Math.max(0,e-30)/1000*6.5;                          // výška
   if(kind==='forest') T+=1.5; if(kind==='ice') T-=1; if(kind==='glacier') T-=4; if(kind==='coast'||kind==='sea') T+=3*south+1*(1-south); if(kind==='crater') T+=25;
   if(Math.hypot(p.x-114,p.z-266)<9) T+=4;                   // teplá řeka u Letohradu
@@ -1548,7 +1556,7 @@ $('btnSound').onclick=()=>{ SND.on=!SND.on; $('btnSound').textContent=SND.on?'�
 function updateSound(){ if(!SND.on||!SND.ctx) return; const tx=controls.target.x, tz=controls.target.z, north=1-smooth(60,260,tz), close=1-smooth(120,700,camD)*0.6;
   const seaNear=smooth(26,3,Math.abs(tx-coastX(tz)))*smooth(40,110,tz), W=state.weather;
   let lakeN=0; if(dDale(tx,tz)<34) for(const L of LAKES) lakeN=Math.max(lakeN, smooth(7.5,3,Math.hypot(tx-L.cx,tz-L.cz))); let townN=0, harN=0; for(const c of ALL){ if(c.site) continue; const d=Math.hypot(tx-c.x,tz-c.z); townN=Math.max(townN, smooth(c.ten?c.r*1.6:2.2, c.ten?c.r*0.6:0.8, d)); if(c.sea) harN=Math.max(harN, smooth(5,1.5,d)); }
-  const tgt={ ice:lakeN*0.55*(1-smooth(6,45,camD)), town:townN*0.5*(1-smooth(0.8,5,camD)), harbor:harN*0.5*(1-smooth(4,30,camD)), wind:(0.16+0.5*W.wind*(1-W.snow*0.5))*(0.35+0.65*north)*close, storm:W.wind*W.snow*0.8*north*close, sea:seaNear*0.6*close };
+  const tgt={ ice:(SEASON.ice?1:0)*lakeN*0.55*(1-smooth(6,45,camD)), town:townN*0.5*(1-smooth(0.8,5,camD)), harbor:harN*0.5*(1-smooth(4,30,camD)), wind:(0.16+0.5*W.wind*(1-W.snow*0.5))*(0.35+0.65*north)*close, storm:W.wind*W.snow*0.8*north*close, sea:seaNear*0.6*close };
   for(const k in SND.g) SND.g[k].gain.setTargetAtTime(tgt[k], SND.ctx.currentTime, 0.8); }
 function showNote(name, sub, desc){ $('infoName').textContent=name; $('infoSub').textContent=sub||''; $('infoDesc').textContent=desc||''; $('infoPoi').style.display='none'; $('infoDist').style.display='none'; $('map2dBtn').style.display='none'; closeProbe(); $('info').classList.remove('hidden'); }
 
@@ -1716,6 +1724,7 @@ const panel=el('section',{id:'dmPanel',class:'glass hidden'},`
   <h3>Kalendář a počasí</h3>
   <div class="row"><b id="dmDate"></b><span class="note" id="dmDayN"></span></div>
   <div id="dmFc"></div>
+  <div class="row"><span>Roční období</span><select class="btn" id="dmSeason"><option value="auto">podle kalendáře</option><option value="winter">zima</option><option value="spring">jaro</option><option value="summer">léto</option><option value="autumn">podzim</option></select><button class="btn" id="dmMonth">+ měsíc</button></div>
   <div class="row"><button class="btn" id="dmNext">Další den ▸</button><button class="btn" id="dmReroll">Přehodit předpověď</button><button class="btn" id="dmDay0">Den 1</button></div>
   <h3>Družina</h3>
   <div class="row"><button class="btn" id="dmPlace">📍 Umístit klepnutím</button><button class="btn" id="dmGo">Najít</button><button class="btn" id="dmHere">Do vybraného místa</button></div>
@@ -1741,7 +1750,7 @@ const dmBtn=el('button',{class:'btn',id:'btnDM'},'🎒 DM'); $('btnFilm').after(
 dmBtn.onclick=()=>{ panel.classList.toggle('hidden'); dmBtn.classList.toggle('on',!panel.classList.contains('hidden')); };
 function drawCal(){ $('dmDate').textContent=dateStr(DM.day); $('dmDayN').textContent=' · den výpravy '+(DM.day+1);
   $('dmFc').innerHTML=DM.forecast.map((r,i)=>{ const w=wxByRoll(r); return `<span title="d20: ${r}"><b>${i?'+'+(i+1)+' d':'zítra'}</b>${esc(w.name)}</span>`; }).join('');
-  $('sub').textContent=dateStr(DM.day)+(state.night?' · Věčná noc':'')+' · 1 dílek = 1 míle'; }
+  $('sub').textContent=dateStr(DM.day)+' · '+SEASON.name+(state.night?' · Věčná noc':'')+' · 1 dílek = 1 míle'; if(DM._sr) syncSeason(); }
 function drawJ(){ const j=$('dmJ'); j.innerHTML=DM.journal.length?DM.journal.map(e=>`<div><b>${esc(dateStr(e.d))}:</b> ${esc(e.t)}</div>`).join(''):'<span class="note">Zatím prázdný. Zapisuje se sem počasí, cesty a setkání.</span>'; j.scrollTop=j.scrollHeight; }
 $('dmNext').onclick=()=>nextDay(); $('dmReroll').onclick=()=>{ DM.forecast=[d20(),d20(),d20(),d20(),d20()]; dmSave(); drawCal(); };
 $('dmDay0').onclick=()=>{ DM.day=0; dmSave(); drawCal(); };
@@ -1757,7 +1766,7 @@ const party=new THREE.Group(); party.visible=false; scene.add(party);
 const fireTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'), gr=g.createRadialGradient(32,32,2,32,32,32); gr.addColorStop(0,'rgba(255,200,120,1)'); gr.addColorStop(0.4,'rgba(255,140,50,0.45)'); gr.addColorStop(1,'rgba(255,120,30,0)'); g.fillStyle=gr; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); })();
 const fire=new THREE.Sprite(new THREE.SpriteMaterial({map:fireTex,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); fire.position.y=0.5; fire.scale.setScalar(1.7); party.add(fire);
 const ring=new THREE.LineLoop(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color:0xffd27a,transparent:true,opacity:0.75,depthTest:false})); ring.renderOrder=7; ring.visible=false; ring.frustumCulled=false; scene.add(ring);
-const dayMiles=(z)=>((z<70)?16:14)*(WXF[state.weather.id]||1);
+const dayMiles=(z)=>((z<70)?SEASON.dale*8:SEASON.road)*(WXF[state.weather.id]||1);
 function updRing(){ if(!DM.party){ party.visible=ring.visible=false; $('dmRange').textContent='Družina zatím není na mapě.'; return; }
   const {x,z}=DM.party, R=dayMiles(z), a=[]; for(let i=0;i<120;i++){ const t=i/120*6.2832, px=x+Math.cos(t)*R, pz=z+Math.sin(t)*R; a.push(px, Math.max(ground(px,pz),0)+0.06, pz); }
   ring.geometry.dispose(); ring.geometry=new THREE.BufferGeometry(); ring.geometry.setAttribute('position',new THREE.Float32BufferAttribute(a,3)); ring.visible=party.visible=true; party.position.set(x,Math.max(ground(x,z),0),z);
@@ -1874,6 +1883,44 @@ const vid=el('video',{id:'dmVid',controls:'',loop:'',playsinline:'',preload:'non
 { const _n=showNote; showNote=function(a,b,c){ const v=_n(a,b,c), f=EGGV[a]; if(f){ vid.src='video/'+f+'.mp4'; vid.style.display='block'; vid.volume=DM.vol; vid.play().catch(()=>{}); } else { vid.pause(); vid.style.display='none'; } return v; };
   const _s=selectPlace; selectPlace=function(t){ vid.pause(); vid.style.display='none'; return _s(t); };
   const _c=closeInfo; closeInfo=function(){ vid.pause(); return _c(); }; $('infoClose').onclick=()=>closeInfo(); }
+
+
+// ================================================================ roční období: sníh, led, počasí a tempo cest se mění podle měsíce (hodnoty mimo zimu jsou homebrew)
+if(!DM.season) DM.season='auto';
+const WX0=WEATHER.map(w=>Object.assign({},w));
+const SEASW={
+ spring:{clear:{name:'Jasno, mrazivé ráno',temp:'−8 °C',t:-8,snow:0,rules:[['Sníh přes den taje, v noci znovu mrzne – cesty jsou samý led.']]},
+   flurries:{name:'Zataženo, mokrý sníh',temp:'−3 °C',t:-3,snow:0.2,rules:[['Břečka a bláto: žádné postihy, jen mokro a zima.']]},
+   snow:{name:'Sníh s deštěm',temp:'−1 °C',t:-1,snow:0.7,rules:[['Mírně zahalená oblast (lightly obscured).'],['Rozbředlý sníh je obtížný terén.']]},
+   wind:{name:'Ostrý vítr',temp:'−14 °C pocitově',t:-6,rules:WX0[3].rules},
+   blizzard:{name:'Pozdní vánice',temp:'−10 °C',t:-10,rules:WX0[4].rules},
+   whiteout:{name:'Hustá mlha',temp:'0 °C',t:0,snow:0,wind:0.1,rules:[['Vše dál než 60 stop je silně zahalené (heavily obscured).', true],['Led na jezerech je zrádný: Obratnost SO 12, jinak pád do vody.', true]]}},
+ summer:{clear:{name:'Jasno',temp:'12 °C',t:12,snow:0,rules:[['Krátké léto: tundra kvete, komáři a mošky jsou všude.'],['Slunce skoro nezapadá – tma je jen pár hodin.']]},
+   flurries:{name:'Zataženo',temp:'8 °C',t:8,snow:0,rules:[['Žádné postihy.']]},
+   snow:{name:'Déšť',temp:'6 °C',t:6,snow:0.6,rules:[['Mírně zahalená oblast (lightly obscured).'],['Nevýhoda na Moudrost (Vnímání) spoléhající na zrak a sluch.'],['Rozmoklá tundra mimo cesty je obtížný terén.', true]]},
+   wind:{name:'Ostrý vítr',temp:'5 °C',t:5,snow:0,rules:WX0[3].rules},
+   blizzard:{name:'Bouřka',temp:'7 °C',t:7,snow:0.9,rules:[['Všechny postihy deště i silného větru.'],['Cestovní tempo poloviční; na otevřené pláni hrozí blesky.', true]]},
+   whiteout:{name:'Hustá mlha',temp:'4 °C',t:4,snow:0,wind:0.05,rules:[['Vše dál než 60 stop je silně zahalené (heavily obscured).', true]]}},
+ autumn:{clear:{name:'Jasno, první mrazy',temp:'−5 °C',t:-5,snow:0,rules:[['Jezera začínají zamrzat, led ale ještě neunese.', true]]},
+   flurries:{name:'Zataženo, poletuje sníh',temp:'−8 °C',t:-8,rules:[['Žádné další postihy.']]},
+   snow:{name:'Sněžení',temp:'−6 °C',t:-6,rules:WX0[2].rules},
+   wind:{name:'Ostrý vítr',temp:'−18 °C pocitově',t:-10,rules:WX0[3].rules},
+   blizzard:{name:'Vánice',temp:'−15 °C',t:-15,rules:WX0[4].rules},
+   whiteout:{name:'Bílá tma',temp:'−18 °C',t:-18,rules:WX0[5].rules}}};
+const SEASON_OF=['winter','winter','spring','spring','spring','summer','summer','summer','autumn','autumn','autumn','winter'];
+const monthOf=(d)=> d<=30 ? 0 : (1+Math.floor((d-31)/30))%12;
+const seasonWanted=()=> DM.season==='auto' ? SEASON_OF[monthOf(DM.day)] : DM.season;
+function applySeason(id){ SEASON=SEASONS[id]||SEASONS.winter; paintTerrain(SEASON); paintSea(SEASON);
+  for(const m of SEASON_OBJ.lakes) m.material=SEASON.ice?SEASON_OBJ.iceMat:SEASON_OBJ.waterMat;
+  if(SEASON_OBJ.floes) SEASON_OBJ.floes.visible=SEASON.id!=='summer'; if(SEASON_OBJ.drifts) SEASON_OBJ.drifts.visible=SEASON.patch>0.4;
+  WEATHER.forEach((w,i)=>Object.assign(w, WX0[i], (SEASW[SEASON.id]||{})[w.id]||{}));
+  setWeather(state.weather, state.roll); try{ if(measuring) drawMeasure(); }catch(e){}
+  $('sub').textContent=dateStr(DM.day)+' · '+SEASON.name+(state.night?' · Věčná noc':'')+' · 1 dílek = 1 míle'; }
+function syncSeason(){ const id=seasonWanted(); if(id!==SEASON.id) applySeason(id); }
+{ const _sw=setWeather; setWeather=function(w,r){ const rain=w.t>1; snow.material.color.set(rain?0x8ea8c8:0xffffff); snow.material.size=rain?0.17:0.3; return _sw(w,r); }; }
+$('dmSeason').value=DM.season; $('dmSeason').onchange=e=>{ DM.season=e.target.value; dmSave(); syncSeason(); };
+$('dmMonth').onclick=()=>{ DM.day+=30; dmSave(); drawCal(); };
+Object.defineProperty(DM,'_sr',{value:true,enumerable:false}); syncSeason();
 
 window.__ready=true;
 </script>
