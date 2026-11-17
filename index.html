@@ -2,7 +2,8 @@
 <html lang="cs">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<style>html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior:none} .panel,.btn,button,#info,#dmPanel,.modal{touch-action:pan-x pan-y} @media (pointer:coarse){ input,textarea,select{font-size:16px !important} }</style>
 <title>Desetiměstí – 3D mapa (leden)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2050,6 +2051,11 @@ $('dmSeason').value=DM.season; $('dmSeason').onchange=e=>{ DM.season=e.target.va
 $('dmMonth').onclick=()=>{ DM.day+=30; dmSave(); drawCal(); };
 Object.defineProperty(DM,'_sr',{value:true,enumerable:false}); syncSeason();
 
+// mobil: stránka se nesmí zvětšovat štípnutím ani dvojklepnutím na ovládací prvky (zvětšuje se jen mapa)
+for(const ev of ['gesturestart','gesturechange','gestureend']) document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
+{
+  document.addEventListener('touchmove',e=>{ if(e.touches.length>1 && e.target.id!=='c' && !(e.target.closest&&e.target.closest('#m2view'))) e.preventDefault(); },{passive:false});
+  const vv=window.visualViewport, mv=document.querySelector('meta[name=viewport]'); if(vv&&mv){ const fix=()=>{ if(vv.scale>1.02 && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'')){ const c=mv.content; mv.content=c+', minimum-scale=1'; setTimeout(()=>{ mv.content=c; },60); } }; vv.addEventListener('resize',fix); document.addEventListener('focusout',()=>setTimeout(fix,250)); } }
 window.__ready=true;
 </script>
 </body>
