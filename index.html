@@ -2205,6 +2205,103 @@ function treeLOD(){ const f=camD<320?1:camD<650?0.55:0.32; if(f===TREEM_F[0]) re
     routes.forEach((P,i)=>{ const m=new THREE.Mesh(M.geo,M.mat); scene.add(m); sl.push({m,P,ph:i*3.1}); });
     LIVE.push((t)=>{ const vis=camD<40 && SEASON.sled, s=clamp(camD*0.012,0.02,0.22)/M.dy; for(const h of sl){ h.m.visible=vis; if(!vis) continue; const [x,z,a]=at(h.P,h.ph+t*0.12); if(!inLake(x,z)){ h.m.visible=false; continue; } h.m.position.set(x,ICE_Y+0.002,z); h.m.rotation.y=a; h.m.scale.setScalar(s); } }); }); }
 
+// ================================================================ Deník družiny: stopa výpravy, zastávky s kartami, písnička k plavbě
+const DIARY_SHIP=`Kdyby mi někdo před rokem řekl, že budu mít ruce až po lokty v rumu a ani kapka z něj neskončí v mém hrdle, vysmál bych se mu. Jenže to bylo před rokem. Teď cestuju s Rayem.
+
+Ale popořadě.
+
+Z Hlubiny jsme vyrazili ve čtyřech. Ray je paladin Silvana a pevně věří, že všechno na světě se dá napravit, když se člověk dost snaží a pořádně se u toho mračí. Než se dal na cesty, vařil v Desetiměstí medovinu. Teď se už dva roky toulá světem, ale o medovině pořád mluví s takovou něhou, s jakou jiní mluví o ženách. Zack je goliáš a válečník a loď ho unese jen ze slušnosti. Niri je elfka a druidka. Mluví málo a dívá se hodně, což u lidí oceňuju – nejspíš proto, že sám to nedokážu. A pak jsem tu já.
+
+Kapitán se mi nelíbil od první chvíle. Lidi, kteří něco tají, poznám na sto honů, koneckonců jsem jedním z nich. Jenže kapitán netajil nic zajímavého. Byl prostě nemocný. Kašlal do rukávu, a když si myslel, že se nikdo nedívá, prohlížel si na něm krev.
+
+Pak jsme se pustili do nákladu. Zásoby pro Desetiměstí – mouka, solené maso, sudy – a mezi nimi bedna, která tam rozhodně neměla co dělat. Blechy. A ne ledajaké blechy, ale blechy s morem. Někdo si dal tu práci, zabalil je a poslal lidem, kteří na severu i tak živoří na hraně hladu. V Trhově by se za takový nápad styděli, a to už je co říct.
+
+A kapitán nebyl sám. Kašlalo víc lidí, než by se člověku líbilo.
+
+Tady přišla Rayova velká chvíle. Nevím, jestli mu to poradil Silvanus, nebo na to přišel sám, ale vzal sud rumu a začal drhnout. Tvářil se přitom jako člověk, který by mnohem radši držel v ruce medovinu, ale chápe, že na blechy je rum to pravé. Drhnul paluby, náklad, posádku. Hlavně posádku. Námořníci protestovali jen do chvíle, kdy jim došlo, že trocha se dá i vypít. Potom Ray zapálil vykuřovadlo a jednoho po druhém je vyudil jako šunky. Tvářil se u toho tak vážně, že jsem se musel otočit k zábradlí, aby neviděl, jak se směju. Nejhorší na tom je, že to zabralo.
+
+My ostatní jsme mezitím měli jinou starost. Na lodi s námi totiž jel druid. To by samo o sobě nic neznamenalo, jenže jsme se dozvěděli, že starého druida, který by si s morem věděl rady, někdo zastrašil, až zalezl a mlčí. A za celou tou věcí stojí temní druidi. Otázka tedy zněla: je náš spolucestující jen chlapík, co si rád povídá se stromy, nebo je to jejich člověk?
+
+Sledoval jsem ho. Jak jí, jak se dívá na vodu, jak se baví s Niri. Čekal jsem na ten okamžik, kdy se mu úsměv nesejde s očima. Jednou už jsem takový okamžik přehlédl. Jmenovala se Katja a stálo mě to Fenjiho a Truxe. Podruhé se mi to nestane – nebo si to aspoň budu dál opakovat.
+
+Na nic jsem nepřišel. Zrádce se podle obličeje nepozná, to vím líp než kdo jiný. Já si obličeje měním jako jiní košile.`;
+const DIARY_FIRE=`A pak jsme připluli do Fireshaeru.
+
+Mor jsme porazili. Na palubě už nikdo nekašle krev a Ray je na sebe právem trochu pyšný – dokonce už začal plánovat, jakou medovinou to oslavíme. Radost nám ale vydržela přesně do chvíle, kdy jsme uviděli přístav. Město hořelo. A na obzoru se vzdalovala loď ledových obrů – obrovská, jako by se ledovec rozhodl, že si vyrazí na moře. Podle všeho tu byli jen pár hodin před námi.
+
+Jednu pohromu jsme tedy zastavili a druhá nás mezitím předběhla. Tak už to se mnou chodí. Oslava s medovinou se bude muset odložit.
+
+Nemesis, jestli posloucháš: snažím se být trpělivý, opravdu. Ale ten seznam dlužníků mi poslední dobou nějak rychle roste.`;
+const TURGEN_STORY=`Dítě dvou nocí
+Turgen se narodil roku 1470 jako syn dvou velmi rozdílných rodičů. Otec Tamis je měňavec, zloděj a mocný mág, který zná tajemství sfér a Sigilu. Dnes slouží Chronosovi jako ochránce jeho bludiště. Matka Gatria je drowka a kněžka Elistrae. Po otci zdědil Turgen schopnost měnit tvář, po matce temnozrak a drowí krev. Nepatří tak úplně do žádného světa.
+
+Trhov
+Vyrůstal v Trhově, městě, kde se všechno kupuje a krade. Měl dva nejlepší přátele: chytrého hobita Fenjiho a mlčenlivého trpaslíka Truxe. Všichni tři kradli, protože v Trhově to bylo snadné a protože si mysleli, že jim svět patří.
+
+Svitek a kult Masky
+Jednou našli cestu do staré pevnosti a v ní svitek z dob Netherilu. Gatria ho chlapcům vzala, schovala a zakázala jim o něm mluvit. Trhov ale šeptá. Brzy se jim ozvala Katja, vůdkyně kultu Masky, a pozvala je mezi sebe. Turgen se stal knězem Masky a s přáteli plnil jeden úkol za druhým, každý temnější než ten předchozí. Poslední zkouška byla past. Katja je zradila, Fenji a Trux zemřeli a Turgen utekl jen s holým životem.
+
+Přísaha
+Našli ho druidi ze Smaragdové enklávy, napůl mrtvého. Matka mezitím odešla se svitkem na sever, aby ho ochránila. Turgen pak v noci poklekl a přísahal službu Nemesis, bohyni pomsty: jednou se vrátí a Katja zaplatí. Nejdřív ale musí nabrat sílu a znalosti. Proto se vydal do světa.
+
+Družina
+V Hlubině se seznámil s paladinem Rayem, goliášem Zackem a elfskou druidkou Niri. V Goldenfields spolu odhalili spiknutí Zhentarimu, odrazili invazi skřetů a zachránili enta. Za odměnu dostali semena vlastních stromů. Turgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.
+
+Plavba na sever
+Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. Někdo do nákladu podstrčil bednu s nakaženými blechami a za vším stáli temní druidi. Ray zachránil posádku rumem a vykuřovadlem a Zack se mezitím zhulil s kormidelníkem. Turgen podezíral druida na lodi, jestli to není jejich člověk. V Katjině případě kdysi zradu přehlédl a podruhé už nechce. Mor porazili, ale když dopluli do Fireshaeru, město hořelo. Pár hodin před nimi ho napadli ledoví obři a na obzoru ještě viděli odplouvat jejich obrovskou loď.
+
+Kde je teď
+Turgen je na 4. úrovni, právě se odvrátil od Masky k Nemesis a s družinou dorazil na zamrzlý sever. Na Katju nezapomněl, jen se učí trpělivosti.`;
+{ const W=byId['waterdeep'], G=byId['goldenfields'], F=byId['fireshear'];
+  // trasa: Hlubina → Goldenfields → Hlubina → po moři na sever → Fireshear
+  const land=[[W.x,W.z],[W.x+10,W.z-22],[W.x+20,W.z-50],[G.x-4,G.z+24],[G.x,G.z]];
+  const sea=[[W.x-2,W.z],[W.x-12,W.z-4]]; for(let z=W.z-20; z>F.z+14; z-=14) sea.push([coastX(z)-9-3*Math.sin(z*0.04), z]); sea.push([F.x-7,F.z+6],[F.x-1.5,F.z]);
+  const dense=(pts,st)=>{ const o=[]; for(let i=0;i<pts.length-1;i++){ const a=pts[i], b=pts[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1]), n=Math.max(1,Math.round(L/st)); for(let k=0;k<n;k++) o.push([a[0]+(b[0]-a[0])*k/n, a[1]+(b[1]-a[1])*k/n]); } o.push(pts[pts.length-1]); return o; };
+  const dots=[...dense(land,2.2),...dense(sea,2.6)], pos=new Float32Array(dots.length*3); dots.forEach((p,i)=>{ pos[i*3]=p[0]; pos[i*3+1]=Math.max(ground(p[0],p[1]),0)+0.18; pos[i*3+2]=p[1]; });
+  const tg=new THREE.BufferGeometry(); tg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const trail=new THREE.Points(tg,new THREE.PointsMaterial({color:0xf2c14e,size:HQ?4.5:3.5,sizeAttenuation:false,transparent:true,opacity:0.95,depthWrite:false,fog:false})); trail.frustumCulled=false; trail.renderOrder=5; scene.add(trail);
+  const seaMid=sea[Math.floor(sea.length*0.55)];
+  const STOPS=[
+    {n:'①',t:'Hlubina – seznámení družiny',sub:'Deník družiny · 1. zastávka',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,
+     txt:'V Hlubině se Turgen seznámil s paladinem Rayem, goliášem Zackem a elfskou druidkou Niri. Odtud družina vyrazila do Goldenfields a později lodí na sever.\n\nRay – paladin Silvana, bývalý medovinář z Desetiměstí.\nZack – goliáš a válečník.\nNiri – elfka a druidka.\nTurgen – měňavec, který nikomu nevěří a obličeje mění jako jiní košile.\n\n(Podrobný zápis z deníku k seznámení zatím chybí.)'},
+    {n:'②',t:'Goldenfields – spiknutí a obrana',sub:'Deník družiny · 2. zastávka',x:G.x,z:G.z,dy:1.6,d:7,
+     txt:'V Goldenfields družina odhalila spiknutí Zhentarimu, odrazila invazi skřetů a zachránila enta. Za odměnu dostali semena vlastních stromů.\n\nTurgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.\n\n(Podrobný zápis z deníku zatím chybí.)'},
+    {n:'③',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3. zastávka · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
+    {n:'④',t:'Fireshear v plamenech',sub:'Turgenův deník · 4. zastávka',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
+  // karta: dlouhý text s odstavci a přehrávač písně
+  const st=document.createElement('style'); st.textContent='.lbl.diary{font:700 13px/1 Inter,system-ui,sans-serif;color:#2a1c05;background:#f2c14e;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5);text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap} body.nodiary .lbl.diary{display:none!important} #info.diary #infoDesc{white-space:pre-line;max-height:42vh;overflow-y:auto;padding-right:6px}'; document.head.appendChild(st);
+  const aud=el('audio',{id:'diaryAud',controls:'',preload:'none',style:'width:100%;margin-top:10px;display:none'}); vid.after(aud);
+  let cur=null; const stopAud=()=>{ aud.pause(); aud.style.display='none'; $('info').classList.remove('diary'); cur=null; };
+  { const _n=showNote; showNote=function(a,b,c){ stopAud(); return _n(a,b,c); }; const _s=selectPlace; selectPlace=function(t){ stopAud(); return _s(t); }; const _c=closeInfo; closeInfo=function(){ aud.pause(); return _c(); }; $('infoClose').onclick=()=>closeInfo(); }
+  const TURGEN={t:'Turgenův příběh',sub:'Měňavec z Trhova · kněz Masky, dnes služebník Nemesis · s písní Stín Trhova',txt:TURGEN_STORY,audio:'audio/stin-trhova.mp3'};
+  const open=(s,fly)=>{ showNote(s.t,s.sub,s.txt); $('info').classList.add('diary'); $('infoDesc').scrollTop=0; cur=s; if(s.audio){ if(!aud.src.endsWith(s.audio)) aud.src=s.audio; aud.volume=DM.vol??0.8; aud.style.display='block'; }
+    if(fly){ const y=Math.max(ground(s.x,s.z),0); flyTo(new THREE.Vector3(s.x+s.d*0.45,y+s.d*0.7,s.z+s.d), new THREE.Vector3(s.x,y,s.z), 1800); } };
+  for(const s of STOPS) addLabel(s.n+' '+s.t.split(' – ')[0], s.x,s.z,s.dy,'diary',{y:Math.max(ground(s.x,s.z),0),click:()=>open(s,false)});
+  // volba v horní liště
+  const sel=el('select',{class:'btn',id:'diarySel','aria-label':'Deník družiny'}); sel.innerHTML='<option value="">📖 Deník…</option>'+STOPS.map((s,i)=>`<option value="${i}">${s.n} ${s.t}</option>`).join('')+'<option value="tu">Turgenův příběh ♪</option><option value="all">Celá trasa</option><option value="tg">Skrýt / zobrazit stopu</option>'; $('places').before(sel);
+  const setVis=v=>{ DM.diaryOff=!v; trail.visible=v; document.body.classList.toggle('nodiary',!v); for(const g of dGroups) g.userData.off=!v; }; const dGroups=[];
+  sel.onchange=()=>{ const v=sel.value; sel.value=''; if(v==='tg'){ setVis(!!DM.diaryOff); dmSave(); return; } if(DM.diaryOff){ setVis(true); dmSave(); }
+    if(v==='tu'){ open(TURGEN,false); } else if(v==='all'){ closeInfo(); const cx=(W.x+F.x)/2, cz=(W.z+F.z)/2; flyTo(new THREE.Vector3(cx,HQ?760:980,cz+330), new THREE.Vector3(cx,0,cz), 1800); } else if(v!=='') open(STOPS[+v],true); };
+  // --- co je vidět přímo v mapě
+  const egg=(g,x,z,sc,max,anim)=>{ g.position.set(x,Math.max(ground(x,z),0),z); g.scale.setScalar(sc); scene.add(g); dGroups.push(g); eggs.push({g,max,anim:(t)=>{ if(g.userData.off){ g.visible=false; return; } if(anim) anim(t); }}); return g; };
+  // Goldenfields: zachráněný ent, záhon mladých stromků a opuštěný skřetí tábor
+  { const g=new THREE.Group(), bark=MAT(0x5a4028), leaf=MAT(0x3f6b2e), ent=humanoid(0x6b4a2c,0x4e3a22,null); ent.scale.setScalar(2.2); g.add(ent);
+    part(g,'cone',leaf,0,2.75,0,1.5,1.3,1.5); part(g,'cone',leaf,0.25,3.35,0.1,1.0,1.0,1.0);
+    for(let i=0;i<7;i++){ const a=i*0.9, r=2.2+0.5*(i%3); part(g,'cyl',bark,Math.cos(a)*r,0.2,Math.sin(a)*r+1.2,0.07,0.4,0.07); part(g,'cone',leaf,Math.cos(a)*r,0.55,Math.sin(a)*r+1.2,0.36,0.5,0.36); }
+    egg(g,G.x+4.4,G.z+1.2,0.16,60,(t)=>{ ent.rotation.y=Math.sin(t*0.25)*0.5; if(ent.userData.aL) ent.userData.aL.rotation.x=Math.sin(t*0.6)*0.3; });
+    const c=new THREE.Group(), hide=MAT(0x6a5a44), ash=MAT(0x2b2623); for(let i=0;i<5;i++){ const a=i*1.3; part(c,'cone',hide,Math.cos(a)*1.3,0.3,Math.sin(a)*1.3,0.7,0.6,0.7,0,a,(i%2?0.5:0)); } part(c,'cyl',ash,0,0.03,0,0.7,0.06,0.7);
+    egg(c,G.x-5.2,G.z-3.4,0.14,40,null); }
+  // loď družiny na cestě z Hlubiny do Fireshearu
+  { const L=[0]; for(let i=1;i<sea.length;i++) L.push(L[i-1]+Math.hypot(sea[i][0]-sea[i-1][0],sea[i][1]-sea[i-1][1])); const len=L[L.length-1], sh=ship(0xf2c14e,0x3d2a1a);
+    egg(sh,sea[0][0],sea[0][1],1,1e9,(t)=>{ const d=(t*2.2)%(len+40); let i=1; while(i<L.length-1&&L[i]<d) i++; const a=sea[i-1], b=sea[i], k=Math.min(1,(d-L[i-1])/Math.max(1e-6,L[i]-L[i-1])); sh.position.set(a[0]+(b[0]-a[0])*k,Math.sin(t)*0.03,a[1]+(b[1]-a[1])*k); sh.rotation.y=Math.atan2(b[0]-a[0],b[1]-a[1]); sh.scale.setScalar(clamp(camD*0.022,0.25,3.4)); }); }
+  // Fireshear: požár v přístavu a odplouvající loď ledových obrů
+  { const g=new THREE.Group(), fl=[], sm=[]; for(let i=0;i<6;i++){ const m=new THREE.MeshBasicMaterial({color:i%2?0xff7a1a:0xffc24a,transparent:true,opacity:0.9,fog:false}); const f=part(g,'cone',m,(i%3-1)*0.9+0.2*i,0.5,((i*7)%5-2)*0.5,0.55,1.2,0.55); fl.push(f); }
+    for(let i=0;i<7;i++){ const m=new THREE.MeshBasicMaterial({color:0x2a2622,transparent:true,opacity:0.5-i*0.05,depthWrite:false}); sm.push(part(g,'box',m,0.3*i,1.6+i*1.1,-0.4*i,1.2+i*0.5,1.0,1.2+i*0.5)); }
+    egg(g,F.x+0.2,F.z,0.5,400,(t)=>{ fl.forEach((f,i)=>{ f.scale.y=1.0+0.5*Math.sin(t*7+i*1.9); f.position.y=f.scale.y*0.5; }); sm.forEach((s,i)=>{ s.rotation.y=t*0.3+i; s.position.x=0.3*i+Math.sin(t*0.5+i)*0.3; }); g.scale.setScalar(clamp(camD*0.02,0.35,2.2)); });
+    const gs=ship(0xd9ecf7,0x9fc4dd); egg(gs,F.x-14,F.z-12,1,500,(t)=>{ const k=(t*0.05)%1; gs.position.set(F.x-9-k*26,Math.sin(t*0.6)*0.05,F.z-7-k*22); gs.rotation.y=Math.atan2(-26,-22); gs.scale.setScalar(clamp(camD*0.05,1.2,7)); }); }
+  if(DM.diaryOff) setVis(false);
+}
+
 // mobil: stránka se nesmí zvětšovat štípnutím ani dvojklepnutím na ovládací prvky (zvětšuje se jen mapa)
 for(const ev of ['gesturestart','gesturechange','gestureend']) document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
 {
