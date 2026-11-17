@@ -1422,8 +1422,8 @@ const SMK={n:0,list:[]}; let updateSmoke=()=>{};
     ggeo.setDrawRange(0,SMK.list.length); ggeo.attributes.position.needsUpdate=ggeo.attributes.a.needsUpdate=ggeo.attributes.s.needsUpdate=true; }; }
 // domy: nejbližší domy ke kameře se při přiblížení vymění za modely (jen na PC)
 const LODM={}, LOD_CAP=420, lodActive=new Set(), ZERO4=new THREE.Matrix4().makeScale(0,0,0), lodO=new THREE.Object3D(); let lodReady=false;
-const LODK=['house','inn','long','town','manor','house2','house3'];
-if(HQ) Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ if(r.k==='house'){ const v=['house','house2','house3'][(r.bi*7+((r.x*53)|0))%3]; if(MODELS[v]) r.k=v; } } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; });
+const LODK=['house','inn','long','town','manor','house2','house3','house4'];
+if(HQ) Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ if(r.k==='house'){ const v=['house','house2','house4','house3','house','house4','house2'][(r.bi*7+((r.x*53)|0))%7]; if(MODELS[v]) r.k=v; } } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; });
 function updateLOD(){ if(!lodReady) return; const tx=controls.target.x, tz=controls.target.z, cand=[];
   for(const r of HREC){ if(!LODM[r.k]) continue; const s=Math.max(r.w,r.l); if(camD>s*300) continue; const d=Math.hypot(r.x-tx,r.z-tz); if(d<camD*1.3+s*4) cand.push([d,r]); }
   cand.sort((a,b)=>a[0]-b[0]); const next=new Set(cand.slice(0,LOD_CAP).map(c=>c[1]));
@@ -1617,12 +1617,12 @@ window.addEventListener('resize', resize); resize();
 const SND={on:false, ctx:null, g:{}};
 async function startSound(){ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); SND.ctx=ctx; SND.master=ctx.createGain(); SND.master.gain.value=0.9; SND.master.connect(ctx.destination);
     const SRC=(await import('./sounds.js')).default;
-    for(const k of ['wind','storm','sea','ice','harbor','town']){ if(!SRC[k]) continue; const buf=await ctx.decodeAudioData(b64buf(SRC[k])); const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; const g=ctx.createGain(); g.gain.value=0; src.connect(g); g.connect(SND.master); src.start(); SND.g[k]=g; } }catch(e){ SND.on=false; $('btnSound').textContent='🔇 Zvuk'; } }
+    for(const k of ['wind','storm','sea','ice','harbor','town','music']){ if(!SRC[k]) continue; const buf=await ctx.decodeAudioData(b64buf(SRC[k])); const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; const g=ctx.createGain(); g.gain.value=0; src.connect(g); g.connect(SND.master); src.start(); SND.g[k]=g; } }catch(e){ SND.on=false; $('btnSound').textContent='🔇 Zvuk'; } }
 $('btnSound').onclick=()=>{ SND.on=!SND.on; $('btnSound').textContent=SND.on?'🔊 Zvuk':'🔇 Zvuk'; $('btnSound').classList.toggle('on',SND.on); if(SND.on && !SND.ctx) startSound(); else if(SND.ctx) (SND.on?SND.ctx.resume():SND.ctx.suspend()); };
 function updateSound(){ if(!SND.on||!SND.ctx) return; const tx=controls.target.x, tz=controls.target.z, north=1-smooth(60,260,tz), close=1-smooth(120,700,camD)*0.6;
   const seaNear=smooth(26,3,Math.abs(tx-coastX(tz)))*smooth(40,110,tz), W=state.weather;
   let lakeN=0; if(dDale(tx,tz)<34) for(const L of LAKES) lakeN=Math.max(lakeN, smooth(7.5,3,Math.hypot(tx-L.cx,tz-L.cz))); let townN=0, harN=0; for(const c of ALL){ if(c.site) continue; const d=Math.hypot(tx-c.x,tz-c.z); townN=Math.max(townN, smooth(c.ten?c.r*1.6:2.2, c.ten?c.r*0.6:0.8, d)); if(c.sea) harN=Math.max(harN, smooth(5,1.5,d)); }
-  const tgt={ ice:(SEASON.ice?1:0)*lakeN*0.55*(1-smooth(6,45,camD)), town:townN*0.5*(1-smooth(0.8,5,camD)), harbor:harN*0.5*(1-smooth(4,30,camD)), wind:(0.16+0.5*W.wind*(1-W.snow*0.5))*(0.35+0.65*north)*close, storm:W.wind*W.snow*0.8*north*close, sea:seaNear*0.6*close };
+  const tgt={ music:townN*0.42*(1-smooth(2.5,14,camD)), ice:(SEASON.ice?1:0)*lakeN*0.55*(1-smooth(6,45,camD)), town:townN*0.5*(1-smooth(0.8,5,camD)), harbor:harN*0.5*(1-smooth(4,30,camD)), wind:(0.16+0.5*W.wind*(1-W.snow*0.5))*(0.35+0.65*north)*close, storm:W.wind*W.snow*0.8*north*close, sea:seaNear*0.6*close };
   for(const k in SND.g) SND.g[k].gain.setTargetAtTime(tgt[k], SND.ctx.currentTime, 0.8); }
 function showNote(name, sub, desc){ $('infoName').textContent=name; $('infoSub').textContent=sub||''; $('infoDesc').textContent=desc||''; $('infoPoi').style.display='none'; $('infoDist').style.display='none'; $('map2dBtn').style.display='none'; closeProbe(); $('info').classList.remove('hidden'); }
 
