@@ -437,7 +437,16 @@ function peaks(x,z){ const wx=x+(fbm(x*0.045+11,z*0.045,2)-0.5)*14, wz=z+(fbm(x*
   return 0.2+1.2*r+0.22*d*r+0.06*d; }
 const HILLS=[]; for(const t of TEN) for(const h of t.plan.hills||[]){ const g=tg(t,h); HILLS.push([g[0],g[1],h[2],h[3]]); }
 
-function terrain(x,z){
+// Ledová jezera (Ice Lakes) mezi Luskanem a Mirabarem – obrysy přenesené z přehledové mapy Severu
+const ICELAKES=[[[87.9,52.6],[91.7,51.5],[95.1,53.0],[91.4,55.6]],[[74.5,59.2],[78.5,58.9],[81.0,61.1],[77.2,62.4]],[[84.6,61.5],[90.3,59.5],[94.1,61.7],[89.7,67.7],[84.3,66.6]],[[104.8,65.2],[111.0,63.9],[114.8,66.0],[109.1,69.6],[105.3,68.1]],[[114.6,60.7],[120.5,59.5],[126.2,62.0],[126.3,64.9],[119.9,66.1],[115.8,63.7]],[[94.3,72.0],[99.8,70.5],[104.9,73.1],[98.5,78.2],[93.7,75.9]],[[75.9,73.8],[81.2,72.3],[84.9,75.3],[81.4,81.0],[76.3,79.3]],[[77.4,84.9],[81.6,83.2],[84.8,85.6],[81.2,90.5],[77.4,88.5]],[[89.5,83.9],[94.2,81.7],[98.0,84.3],[94.4,91.2],[89.1,89.7]],[[111.2,80.1],[118.2,77.0],[123.8,78.5],[123.5,84.3],[116.4,88.0],[110.5,87.2]]]
+  .map(p0=>{ let pts=p0; for(let it=0;it<3;it++){ const q=[]; for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length]; q.push([a[0]*0.75+b[0]*0.25,a[1]*0.75+b[1]*0.25],[a[0]*0.25+b[0]*0.75,a[1]*0.25+b[1]*0.75]); } pts=q; } const cx0=p0.reduce((s,p)=>s+p[0],0)/p0.length, cz0=p0.reduce((s,p)=>s+p[1],0)/p0.length; pts=pts.map(p=>[cx0+(p[0]-cx0)*1.18,cz0+(p[1]-cz0)*1.18]); let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9; for(const p of pts){ x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); z0=Math.min(z0,p[1]); z1=Math.max(z1,p[1]); } return {pts,closed:pts.concat([pts[0]]),bb:[x0,x1,z0,z1],cx:(x0+x1)/2,cz:(z0+z1)/2,y:null}; });
+function terrain(x,z){ const t=terrain0(x,z);
+  if(x>68 && x<132 && z>46 && z<96) for(const L of ICELAKES){ const b=L.bb; if(x<b[0]-3.2||x>b[1]+3.2||z<b[2]-3.2||z>b[3]+3.2) continue;
+    if(L.y===null){ let m=terrain0(L.cx,L.cz).h; for(const p of L.pts) m=Math.min(m,terrain0(p[0],p[1]).h); L.y=Math.max(0.35,m); }
+    const d=distPoly(x,z,L.closed);
+    if(inPoly(x,z,L.pts)) t.h=L.y-0.1-0.25*smooth(0,1.5,d); else if(d<3){ const k=smooth(0,3,d); t.h=(L.y+0.05)+(t.h-(L.y+0.05))*k*k; } }
+  return t; }
+function terrain0(x,z){
   const zc = interp(SPINE,x);
   // ledovec: východně od údolí a severně od Páteře světa
   const gl = smooth(44,51, x + (vnoise(z*0.07,1)-0.5)*5) * smooth(zc-9, zc-17, z);
@@ -592,6 +601,12 @@ CITIES.push(
    desc:"Věž čaroděje Malchora Harpella na ostrůvku v jezírku."},
   {id:'grunwald', name:"Grunwald", x:268, z:123, s:2.4, r:0.5, n:6, minor:true, site:true, sub:"Dlouhá cesta · okraj Lurkwoodu",
    desc:"Srubová osada uthgardtského kmene Hromového zvířete na okraji lesa."},
+  {id:'blasingdell', name:"Blasingdell", x:169, z:30, s:2.6, r:0.6, n:8, minor:true, site:true, sub:"Hornické městečko · úpatí Páteře světa",
+   desc:"Malé hornické a obchodní městečko v podhůří severně od Mirabaru. Odtud se vychází k hoře Kamenný zub. Poloha podle přehledové mapy Severu."},
+  {id:'stone-tooth', name:"Kamenný zub", en:"Stone Tooth", x:180, z:4, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Stone Tooth · hora v Páteři světa",
+   desc:"Osamělý skalnatý štít, v jehož nitru leží opuštěná trpasličí pevnost Khundrukar se slavnou kovárnou. Dnes ji obývají orkové a horší věci."},
+  {id:'dungeon-ruins', name:"Dungeon of the Ruins", x:473, z:121, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Zříceniny · východní okraj mapy",
+   desc:"Zříceniny s podzemím na východním okraji mapy. Poloha podle přehledové mapy Severu, přibližně."},
   {id:'griffons-nest', name:"Griffon's Nest", x:352, z:158, s:2.4, r:0.5, n:6, minor:true, site:true, sub:"Surbrin Hills · Uthgardti",
    desc:"Opevněná osada uthgardtského kmene Gryfa v pahorkatině."},
   {id:'dungeon-death', name:"Dungeon of Death", x:390, z:89, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Lurkwood",
@@ -745,7 +760,8 @@ function axis(a0,a1,b0,b1,fine,maxStep,g){
 }
 const XS = axis(B.x0,B.x1,-7,22,HQ?0.15:0.24,HQ?2.0:3.6,1.07), ZS = axis(B.z0,B.z1,-13.5,9,HQ?0.15:0.24,HQ?2.0:3.6,1.07);
 { const add=(arr,a,b,st)=>{ for(let v=a; v<=b; v+=st) arr.push(v); arr.sort((p,q)=>p-q); for(let i=arr.length-1;i>0;i--) if(arr[i]-arr[i-1]<st*0.45) arr.splice(i,1); };
-  add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,469.6,481.2,HQ?0.14:0.24); }      // jemná mřížka pod Hlubinou
+  add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,469.6,481.2,HQ?0.14:0.24);
+  add(XS,70,130,HQ?0.6:1.0); add(ZS,48,94,HQ?0.6:1.0); }      // jemná mřížka pod Hlubinou
 const SEASONS={
   winter:{id:'winter',name:'zima',zA:330,zB:105,eA:2.2,eB:4.5,patch:1,green:0,seaA:105,seaB:45,ice:true,dale:2,road:14,southT:-2,refT:-22,sled:true},
   spring:{id:'spring',name:'jaro',zA:120,zB:10,eA:3.5,eB:6.5,patch:0.45,green:0.3,seaA:60,seaB:0,ice:true,dale:2.5,road:20,southT:9,refT:-3,sled:true},
@@ -821,6 +837,7 @@ mist.rotation.x=-Math.PI/2; mist.position.y=-4; scene.add(mist);
   const mat=new THREE.MeshStandardMaterial({map:t, roughness:0.22, metalness:0.12, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2});
   for(const L of LAKES){ const sh=new THREE.Shape(); L.pts.forEach((p,i)=> i? sh.lineTo(p[0],p[1]) : sh.moveTo(p[0],p[1])); const geo=new THREE.ShapeGeometry(sh); geo.rotateX(Math.PI/2);
     const m=new THREE.Mesh(geo,mat); m.position.y=ICE_Y-0.004; scene.add(m); SEASON_OBJ.lakes.push(m); }
+  for(const L of ICELAKES){ terrain(L.cx,L.cz); const sh=new THREE.Shape(); L.pts.forEach((p,i)=> i? sh.lineTo(p[0],p[1]) : sh.moveTo(p[0],p[1])); const geo=new THREE.ShapeGeometry(sh); geo.rotateX(Math.PI/2); const m=new THREE.Mesh(geo,mat); m.position.y=L.y; scene.add(m); SEASON_OBJ.lakes.push(m); }
   SEASON_OBJ.iceMat=mat; SEASON_OBJ.waterMat=new THREE.MeshStandardMaterial({color:0x4d8dbd, roughness:0.2, metalness:0.15, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2});
 }
 // kry
@@ -1188,7 +1205,7 @@ addLabel('Desetiměstí', 6,-2,1.5, 'city big', {click:()=>flyView('dale'), min:
  ['řeka Shaengarne',-14,-1,0.2,'small',60],['Lonelywoodský hvozd',4,-12.4,0.4,'small',30],['Drahokamový důl',5.2,-8.0,0.2,'small',14],
  ['Desátá stezka',-5.2,8.5,0.4,'small',70,10],['Reghedský ledovec',75,-35,3,'',500],['Moře pohyblivého ledu',-45,-45,1.5,'',600],
  ['Páteř světa',150,4,14,'huge',1e9,90],['Údolí ledového větru',-18,-7,0.6,'',400,45],
- ['Severní stezka',22,74,2,'small',420],['Ice Peak',-171,50,7,'',1e9,60],['Icefang Point',-106,60,2,'small',420],['Cold Run',-66,58,2,'small',300],['Železná stezka',-46,30,2,'small',260],['Redrun',-14,13.5,0.5,'small',70],['Klauthen Vale',84,18,6,'small',420],['Ledová jezera',92,68,2,'small',420],['řeka Iceflow',0,77,2,'small',300],['Údolí Khedrun',332,23,6,'small',520],['Věčná blata',470,225,3,'',900],['Stormwreck Isle',101,299,1.5,'small',300],['Ještěří močál',326,519,2,'small',260],['Moře mečů',40,330,3,'huge',1e9,200],['Letohradský hvozd',185,228,4,'',900],['hora Hotenow',139.5,202.7,10,'small',520],
+ ['Severní stezka',22,74,2,'small',420],['Ice Peak',-171,50,7,'',1e9,60],['Icefang Point',-106,60,2,'small',420],['Cold Run',-66,58,2,'small',300],['Železná stezka',-46,30,2,'small',260],['Redrun',-14,13.5,0.5,'small',70],['Klauthen Vale',84,18,6,'small',420],['Ledová jezera',99,69,2,'small',420],['řeka Iceflow',0,77,2,'small',300],['Údolí Khedrun',332,23,6,'small',520],['Věčná blata',470,225,3,'',900],['Stormwreck Isle',101,299,1.5,'small',300],['Ještěří močál',326,519,2,'small',260],['Moře mečů',40,330,3,'huge',1e9,200],['Letohradský hvozd',185,228,4,'',900],['hora Hotenow',139.5,202.7,10,'small',520],
  ['Skaliska',186,134,3,'small',520],['Lurkwood',350,78,4,'small',760],['Mečové hory',222,380,10,'',900],['Močál mrtvých',206,399,2,'small',520],
  ['Kryptgarden',283,368,4,'small',520],['Westwood',295,403,3,'small',420],['Vysoký hvozd',462,395,5,'',1e9,120],['Forlorn Hills',398,448,5,'small',700],
  ['Sumber Hills',348,378,4,'small',520],['Surbrin Hills',343,172,4,'small',700],['Starmetal Hills',273,226,4,'small',520],
