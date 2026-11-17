@@ -1086,11 +1086,32 @@ CITIES.filter(t=>!t.custom).forEach(buildTown);
       if(F[5]<1 && (inLake(x,z) || roadD(x,z)<0.03)) continue;
       if(ALL.some(t=>Math.hypot(x-t.x,z-t.z)<t.r*1.08)) continue;
       TREES.push([x,z,F[5]*(0.7+r()*0.7)]); placed++; } });
-  const trunk=new THREE.InstancedMesh(new THREE.ConeGeometry(0.42,1.3,6), new THREE.MeshStandardMaterial({color:0x27402f, flatShading:true, roughness:0.9}), TREES.length);
-  const cap=new THREE.InstancedMesh(new THREE.ConeGeometry(0.26,0.55,6), new THREE.MeshStandardMaterial({color:0xf2f6fc, flatShading:true, roughness:0.8}), TREES.length);
-  const o=new THREE.Object3D(), r=mulberry(8);
-  TREES.forEach((T,k)=>{ const h=ground(T[0],T[1]), s=T[2]; o.position.set(T[0],h+0.6*s,T[1]); o.scale.setScalar(s); o.rotation.y=r()*6; o.updateMatrix(); trunk.setMatrixAt(k,o.matrix); o.position.y=h+1.05*s; o.updateMatrix(); cap.setMatrixAt(k,o.matrix); });
-  scene.add(trunk, cap);
+  // stromy: pět druhů (smrk, jedle, borovice, listnáč, souše), každý zvlášť instancovaný, se sněhovou čepicí
+  { const mergeG=(parts)=>{ const P=[], C=[]; for(const [g,x,y,z,col,sx,sy,sz] of parts){ const n=g.toNonIndexed(); n.scale(sx||1,sy||1,sz||sx||1); n.translate(x,y,z); const a=n.attributes.position.array, c=new THREE.Color(col); for(let k=0;k<a.length;k+=3){ P.push(a[k],a[k+1],a[k+2]); C.push(c.r,c.g,c.b); } }
+      const G=new THREE.BufferGeometry(); G.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); G.setAttribute('color',new THREE.Float32BufferAttribute(C,3)); G.computeVertexNormals(); return G; };
+    const cone=(r,h,s=6)=>new THREE.ConeGeometry(r,h,s), cyl=(r,h)=>new THREE.CylinderGeometry(r*0.7,r,h,5), ico=(r)=>new THREE.IcosahedronGeometry(r,0);
+    const GR=0xffffff, BR=0x8a6a4a, SN=0xf2f6fc;
+    const SP=[
+      { g:mergeG([[cyl(0.06,0.3),0,0.15,0,BR],[cone(0.5,0.62,7),0,0.55,0,GR],[cone(0.39,0.56,7),0,0.9,0,0xe6f2e6],[cone(0.26,0.52,7),0,1.24,0,0xd6ead6]]),
+        s:mergeG([[cone(0.36,0.2,7),0,0.74,0,SN],[cone(0.28,0.2,7),0,1.06,0,SN],[cone(0.2,0.34,7),0,1.36,0,SN]]), col:0x2a4634 },                       // smrk
+      { g:mergeG([[cyl(0.05,0.3),0,0.15,0,BR],[cone(0.27,1.9,6),0,1.15,0,GR]]), s:mergeG([[cone(0.15,0.8,6),0,1.72,0,SN]]), col:0x22402f },         // štíhlá jedle
+      { g:mergeG([[cyl(0.055,0.95),0,0.47,0,BR],[cone(0.46,0.5,6),0,1.05,0,GR],[cone(0.33,0.42,6),0,1.38,0,0xe2efe0]]), s:mergeG([[cone(0.3,0.16,6),0,1.26,0,SN],[cone(0.22,0.26,6),0,1.5,0,SN]]), col:0x35523a },   // borovice
+      { g:mergeG([[cyl(0.07,0.7),0,0.35,0,BR],[ico(0.44),0,1.0,0,GR,1,0.9,1],[ico(0.3),0.22,1.22,0.1,0xe8e8e8],[ico(0.27),-0.2,0.86,-0.14,0xdcdcdc]]), s:mergeG([[ico(0.3),0.02,1.2,0,SN,1.1,0.45,1.1]]), col:0x6b5a4c, dec:true },   // listnáč
+      { g:mergeG([[cyl(0.06,1.25),0,0.62,0,0xb0a89c],[cyl(0.025,0.4),0.14,0.95,0,0xb0a89c],[cyl(0.02,0.3),-0.1,0.7,0.06,0xb0a89c]]), s:mergeG([[cone(0.05,0.1,5),0,1.28,0,SN]]), col:0x7c746c },     // souše
+    ];
+    const hs2=(k,a)=>{ const v=Math.sin(k*12.9898+a*78.233)*43758.5453; return v-Math.floor(v); };
+    const kind=(T,k)=>{ const u=hs2(k,1), south=smooth(150,300,T[1])*(dDale(T[0],T[1])<40?0:1), small=T[2]<0.03;
+      if(u<0.025 && !small) return 4; if(!small && hs2(k,2)<south*0.6) return 3; const v=hs2(k,3), cold=1-smooth(40,220,T[1]); return v<0.45+0.2*cold?0 : v<0.72+0.1*cold?1 : 2; };
+    const lists=SP.map(()=>[]); TREES.forEach((T,k)=>lists[kind(T,k)].push([T,k]));
+    const o=new THREE.Object3D(), col=new THREE.Color(), caps=[]; let decid=null;
+    SP.forEach((S,si)=>{ const L=lists[si]; if(!L.length) return;
+      const gm=new THREE.InstancedMesh(S.g,new THREE.MeshStandardMaterial({color:S.col, vertexColors:true, flatShading:true, roughness:0.9}),L.length);
+      const sm=new THREE.InstancedMesh(S.s,new THREE.MeshStandardMaterial({color:0xffffff, vertexColors:true, flatShading:true, roughness:0.8}),L.length);
+      L.forEach(([T,k],n)=>{ const h=ground(T[0],T[1]), s=T[2], sy=s*(0.8+hs2(k,4)*0.55), sx=s*(0.85+hs2(k,5)*0.35);
+        o.position.set(T[0],h-0.02*s,T[1]); o.scale.set(sx,sy,sx); o.rotation.set((hs2(k,6)-0.5)*0.14,hs2(k,7)*6.283,(hs2(k,8)-0.5)*0.14); o.updateMatrix(); gm.setMatrixAt(n,o.matrix); sm.setMatrixAt(n,o.matrix);
+        const b=0.78+hs2(k,9)*0.44; col.setRGB(b*(0.92+hs2(k,10)*0.16),b,b*(0.9+hs2(k,11)*0.2)); gm.setColorAt(n,col); });
+      if(gm.instanceColor) gm.instanceColor.needsUpdate=true; scene.add(gm,sm); caps.push(sm); if(S.dec) decid=gm; });
+    SEASON_OBJ.trees={caps,decid}; }
 }
 
 // pole a statky (zimní šachovnice; Goldenfields zlatě)
@@ -1422,8 +1443,8 @@ const SMK={n:0,list:[]}; let updateSmoke=()=>{};
     ggeo.setDrawRange(0,SMK.list.length); ggeo.attributes.position.needsUpdate=ggeo.attributes.a.needsUpdate=ggeo.attributes.s.needsUpdate=true; }; }
 // domy: nejbližší domy ke kameře se při přiblížení vymění za modely (jen na PC)
 const LODM={}, LOD_CAP=420, lodActive=new Set(), ZERO4=new THREE.Matrix4().makeScale(0,0,0), lodO=new THREE.Object3D(); let lodReady=false;
-const LODK=['house','inn','long','town','manor','house2','house3','house4'];
-if(HQ) Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ if(r.k==='house'){ const v=['house','house2','house4','house3','house','house4','house2'][(r.bi*7+((r.x*53)|0))%7]; if(MODELS[v]) r.k=v; } } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; });
+const LODK=['house','inn','long','town','manor','house2','house3','house4','house5','house6','house7'];
+if(HQ) Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ if(r.k==='house'){ const v=['house','house2','house5','house3','house6','house4','house2','house7','house','house5','house3','house6'][(r.bi*7+((r.x*53)|0))%12]; if(MODELS[v]) r.k=v; } } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; });
 function updateLOD(){ if(!lodReady) return; const tx=controls.target.x, tz=controls.target.z, cand=[];
   for(const r of HREC){ if(!LODM[r.k]) continue; const s=Math.max(r.w,r.l); if(camD>s*300) continue; const d=Math.hypot(r.x-tx,r.z-tz); if(d<camD*1.3+s*4) cand.push([d,r]); }
   cand.sort((a,b)=>a[0]-b[0]); const next=new Set(cand.slice(0,LOD_CAP).map(c=>c[1]));
@@ -1978,6 +1999,7 @@ const monthOf=(d)=> d<=30 ? 0 : (1+Math.floor((d-31)/30))%12;
 const seasonWanted=()=> DM.season==='auto' ? SEASON_OF[monthOf(DM.day)] : DM.season;
 function applySeason(id){ SEASON=SEASONS[id]||SEASONS.winter; paintTerrain(SEASON); paintSea(SEASON);
   for(const m of SEASON_OBJ.lakes) m.material=SEASON.ice?SEASON_OBJ.iceMat:SEASON_OBJ.waterMat;
+  if(SEASON_OBJ.trees){ for(const c of SEASON_OBJ.trees.caps) c.visible=SEASON.patch>0.6; if(SEASON_OBJ.trees.decid) SEASON_OBJ.trees.decid.material.color.set({winter:0x6b5a4c,spring:0x8fb46a,summer:0x4f8a3c,autumn:0xc27a2e}[SEASON.id]||0x6b5a4c); }
   if(SEASON_OBJ.floes) SEASON_OBJ.floes.visible=SEASON.id!=='summer'; if(SEASON_OBJ.drifts) SEASON_OBJ.drifts.visible=SEASON.patch>0.4;
   WEATHER.forEach((w,i)=>Object.assign(w, WX0[i], (SEASW[SEASON.id]||{})[w.id]||{}));
   setWeather(state.weather, state.roll); try{ if(measuring) drawMeasure(); }catch(e){}
