@@ -2269,20 +2269,54 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
      txt:"8. prosince\nZpátky v Hlubině. Remallia dostala, co chtěla, a my máme čas do konce měsíce.\n\nProsinec\nKaždý se učí po svém. Niri medituje. Ray slouží ve Městě mrtvých. Zack trénuje. Mě si vzal Haldric, zrzavý půlelf, a honí mě městem po střechách a kanalizací. Střechy mi jdou líp.\n\n29. prosince\nDýchánek u Remallie. Zprávy ze severu jsou horší než před měsícem. Vyrážíme hned po svátcích.\n\n30. prosince\nOslava Nového roku.\n\n3. ledna\nNalodili jsme se. Loď veze zásoby pro Desetiměstí."},
     {n:'⑤',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3.–7. 1. · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
     {n:'⑥',t:'Fireshear v plamenech',sub:'Turgenův deník · 19. 1.',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
-  // karta: dlouhý text s odstavci a přehrávač písně
-  const st=document.createElement('style'); st.textContent='.lbl.diary{font:700 13px/1 Inter,system-ui,sans-serif;color:#2a1c05;background:#f2c14e;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5);text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap} body.nodiary .lbl.diary{display:none!important} .lbl.diary.below{margin-top:30px} #info.diary #infoDesc{white-space:pre-line;max-height:42vh;overflow-y:auto;padding-right:6px}'; document.head.appendChild(st);
+  // karta deníku: papír, data jako nadpisy, ilustrace, kdo tu byl, listování a přehrání celé výpravy
+  const WHO=[['Remallia Haventree – agentka Harfeníků, zadala úkol','Ray – paladin Silvana','Zack – goliáš, válečník','Niriel „Niri“ – elfka, druidka','Turgen – měňavec, pisatel deníku'],
+    ['Neznámá karavana – možná Zhentarim','Drow, nejspíš Elis Dewin – majitel krčmy Crawling Spider','Jeho početná parta'],
+    ['Semile Southwille – uprchlík ze severu, dal družině mapu','Ellardin Darovik – opat, varování nedbal','Zi Liang – jeho zástupkyně, vedla obranu','Lifferlas – ent, probuzený strom','Oren Yogilvy – hobit, složil o družině píseň'],
+    ['Haldric „zrzek“ – půlelf, Turgenův učitel','Remallia Haventree – zprávy ze severu'],
+    ['Kapitán – nemocný morem','Druid na palubě – nejasné, ke komu patří','Kormidelník – Zackův společník u vykuřovadla'],
+    ['Ledoví obři – vyplenili město a odpluli']];
+  STOPS.forEach((s,i)=>{ s.i=i; s.who=WHO[i]; s.img='diary/'+(i+1)+'.jpg'; });
+  const QUEST={t:'Otevřené otázky',sub:'Deník družiny · nitky, které ještě nikdo nerozpletl',list:[
+    'Kdo poslal na sever bednu s morovými blechami?','Kdo jsou temní druidi a co na severu chtějí?','Kde je starý druid, kterého zastrašili, až zalezl a mlčí?','Patří druid z lodi k temným druidům, nebo je to jen spolucestující?',
+    'Co dělal drow – nejspíš Elis Dewin – v noci na cestě do Goldenfields a kdo byli lidé s ním?','Patřila karavana ze 4. prosince k Zhentarimu?','Proč ledoví obři přepadli Fireshear a kam jejich loď odplula?','Co všechno je na mapě Severu od Semila Southwilla?',
+    'Kam na sever odešla Gatria se svitkem z Netherilu?','Kde je Katja?']};
+  const st=document.createElement('style'); st.textContent=`.lbl.diary{font:700 13px/1 Inter,system-ui,sans-serif;color:#2a1c05;background:#f2c14e;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5);text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap} body.nodiary .lbl.diary{display:none!important} .lbl.diary.below{margin-top:30px}
+  #info.diary{background:linear-gradient(180deg,#f4e8cb,#e7d5ab)!important;color:#2b2013!important;border:1px solid #b89b62!important;box-shadow:0 10px 34px rgba(0,0,0,.55),inset 0 0 40px rgba(120,84,30,.18)!important}
+  #info.diary #infoName{color:#3a2408!important;font-family:"Cormorant Garamond",Georgia,serif} #info.diary #infoSub{color:#8a5a14!important} #info.diary #infoClose{color:#3a2408!important;background:rgba(90,60,20,.12)!important} #info.diary #dmBox{display:none!important}
+  #info.diary #infoDesc{max-height:34vh;overflow-y:auto;padding-right:8px;font:400 16px/1.55 Georgia,"Times New Roman",serif} #info.diary #infoDesc,#info.diary #infoDesc p,#info.diary #infoDesc li{color:#2b2013!important}
+  #info.diary #infoDesc h4{margin:14px 0 4px;font:700 18px/1.2 "Cormorant Garamond",Georgia,serif;color:#7a3d10!important;border-bottom:1px solid rgba(122,61,16,.3);padding-bottom:3px} #info.diary #infoDesc h4:first-child{margin-top:2px} #info.diary #infoDesc p{margin:0 0 9px}
+  #info.diary #infoDesc ul{margin:6px 0 0;padding-left:20px} #info.diary #infoDesc li{margin-bottom:5px}
+  #diaryImg{display:none;width:100%;border-radius:8px;margin:8px 0 6px;border:1px solid #b89b62;aspect-ratio:16/9;object-fit:cover;background:#d9c69a}
+  #diaryNav{display:none;align-items:center;justify-content:space-between;gap:8px;margin-top:10px} #diaryNav button{font:600 14px/1 Inter,system-ui,sans-serif;padding:9px 12px;border-radius:9px;border:1px solid #b89b62;background:#fbf3df;color:#3a2408;cursor:pointer} #diaryNav button:disabled{opacity:.35} #diaryNav span{font:600 13px/1 Inter,system-ui,sans-serif;color:#7a5a24}
+  @media (max-width:700px){ #info.diary{max-height:64vh!important;overflow-y:auto!important} #info.diary #infoDesc{max-height:none;overflow:visible} #diaryImg{aspect-ratio:2/1} #diaryNav{position:sticky;bottom:-1px;background:#e7d5ab;padding:8px 0 4px;margin-top:6px} }`; document.head.appendChild(st);
   const aud=el('audio',{id:'diaryAud',controls:'',preload:'none',style:'width:100%;margin-top:10px;display:none'}); vid.after(aud);
-  let cur=null; const stopAud=()=>{ aud.pause(); aud.style.display='none'; $('info').classList.remove('diary'); cur=null; };
-  { const _n=showNote; showNote=function(a,b,c){ stopAud(); return _n(a,b,c); }; const _s=selectPlace; selectPlace=function(t){ stopAud(); return _s(t); }; const _c=closeInfo; closeInfo=function(){ aud.pause(); return _c(); }; $('infoClose').onclick=()=>closeInfo(); }
+  const img=el('img',{id:'diaryImg',alt:'',loading:'lazy'}); $('infoDesc').before(img); img.onerror=()=>{ img.style.display='none'; };
+  const nav=el('div',{id:'diaryNav'},'<button id="dPrev">‹ Předchozí</button><span id="dPos"></span><button id="dPlay" title="Přehrát celou výpravu">▶</button><button id="dNext">Další ›</button>'); aud.after(nav);
+  let cur=null, tour=null; const stopTour=()=>{ if(tour){ clearTimeout(tour); tour=null; } $('dPlay').textContent='▶'; };
+  const stopAud=()=>{ if(!tour) aud.pause(); aud.style.display='none'; img.style.display='none'; nav.style.display='none'; $('info').classList.remove('diary'); cur=null; };
+  { const _n=showNote; showNote=function(a,b,c){ stopAud(); return _n(a,b,c); }; const _s=selectPlace; selectPlace=function(t){ stopTour(); stopAud(); return _s(t); }; const _c=closeInfo; closeInfo=function(){ stopTour(); aud.pause(); return _c(); }; $('infoClose').onclick=()=>closeInfo(); }
+  canvas.addEventListener('pointerdown',()=>stopTour());
+  const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const fmt=t=>t.split('\n\n').map(b=>{ const L=b.split('\n'), h=L[0]; if(h.length<48 && !/[.!?…]$/.test(h) && (L.length>1 || /^\d|^Noc|^Prosinec/.test(h))) return '<h4>'+esc(h)+'</h4>'+(L.length>1?'<p>'+esc(L.slice(1).join(' '))+'</p>':''); return '<p>'+esc(b)+'</p>'; }).join('');
   const TURGEN={t:'Turgenův příběh',sub:'Měňavec z Trhova · kněz Masky, dnes služebník Nemesis · s písní Stín Trhova',txt:TURGEN_STORY,audio:'audio/stin-trhova.mp3'};
-  const open=(s,fly)=>{ showNote(s.t,s.sub,s.txt); $('info').classList.add('diary'); $('infoDesc').scrollTop=0; cur=s; if(s.audio){ if(!aud.src.endsWith(s.audio)) aud.src=s.audio; aud.volume=DM.vol??0.8; aud.style.display='block'; }
+  const open=(s,fly)=>{ showNote(s.t,s.sub,''); $('info').classList.add('diary'); cur=s;
+    $('infoDesc').innerHTML=(s.list?'<ul>'+s.list.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ul>':fmt(s.txt))+(s.who?'<h4>Kdo tu byl</h4><ul>'+s.who.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul>':''); $('infoDesc').scrollTop=0;
+    if(s.img){ img.src=s.img; img.style.display='block'; }
+    if(s.audio&&!tour){ if(!aud.src.endsWith(s.audio)) aud.src=s.audio; aud.volume=DM.vol??0.8; aud.style.display='block'; }
+    if(s.i!=null){ nav.style.display='flex'; $('dPos').textContent=(s.i+1)+' / '+STOPS.length; $('dPrev').disabled=s.i===0; $('dNext').disabled=s.i===STOPS.length-1; }
     if(fly){ const y=Math.max(ground(s.x,s.z),0); flyTo(new THREE.Vector3(s.x+s.d*0.45,y+s.d*0.7,s.z+s.d), new THREE.Vector3(s.x,y,s.z), 1800); } };
-  for(const s of STOPS) addLabel(s.n+' '+s.t.split(' – ')[0], s.x,s.z,s.dy,'diary'+(s.cls?' '+s.cls:''),{y:Math.max(ground(s.x,s.z),0),click:()=>open(s,false)});
+  $('dPrev').onclick=()=>{ stopTour(); if(cur&&cur.i>0) open(STOPS[cur.i-1],true); }; $('dNext').onclick=()=>{ stopTour(); if(cur&&cur.i<STOPS.length-1) open(STOPS[cur.i+1],true); };
+  // přehrání výpravy: kamera projde zastávky jednu po druhé, k tomu hraje píseň z plavby
+  const step=i=>{ open(STOPS[i],true); $('dPlay').textContent='⏸'; tour=setTimeout(()=>{ if(i<STOPS.length-1) step(i+1); else { stopTour(); aud.pause(); } },17000); };
+  const play=from=>{ stopTour(); tour=1; aud.src='audio/cesta-na-lodi.mp3'; aud.volume=(DM.vol??0.8)*0.6; aud.play().catch(()=>{}); step(from); };
+  $('dPlay').onclick=()=>{ if(tour){ stopTour(); aud.pause(); } else play(cur&&cur.i!=null&&cur.i<STOPS.length-1?cur.i:0); };
+  for(const s of STOPS) addLabel(s.n+' '+s.t.split(' – ')[0], s.x,s.z,s.dy,'diary'+(s.cls?' '+s.cls:''),{y:Math.max(ground(s.x,s.z),0),click:()=>{ stopTour(); open(s,false); }});
   // volba v horní liště
-  const sel=el('select',{class:'btn',id:'diarySel','aria-label':'Deník družiny'}); sel.innerHTML='<option value="">📖 Deník…</option>'+STOPS.map((s,i)=>`<option value="${i}">${s.n} ${s.t}</option>`).join('')+'<option value="tu">Turgenův příběh ♪</option><option value="all">Celá trasa</option><option value="tg">Skrýt / zobrazit stopu</option>'; $('places').before(sel);
+  const sel=el('select',{class:'btn',id:'diarySel','aria-label':'Deník družiny'}); sel.innerHTML='<option value="">📖 Deník…</option><option value="play">▶ Přehrát výpravu</option>'+STOPS.map((s,i)=>`<option value="${i}">${s.n} ${s.t}</option>`).join('')+'<option value="q">Otevřené otázky</option><option value="tu">Turgenův příběh ♪</option><option value="all">Celá trasa</option><option value="tg">Skrýt / zobrazit stopu</option>'; $('places').before(sel);
   const setVis=v=>{ DM.diaryOff=!v; trail.visible=v; document.body.classList.toggle('nodiary',!v); for(const g of dGroups) g.userData.off=!v; }; const dGroups=[];
-  sel.onchange=()=>{ const v=sel.value; sel.value=''; if(v==='tg'){ setVis(!!DM.diaryOff); dmSave(); return; } if(DM.diaryOff){ setVis(true); dmSave(); }
-    if(v==='tu'){ open(TURGEN,false); } else if(v==='all'){ closeInfo(); const cx=(W.x+F.x)/2, cz=(W.z+F.z)/2; flyTo(new THREE.Vector3(cx,HQ?760:980,cz+330), new THREE.Vector3(cx,0,cz), 1800); } else if(v!=='') open(STOPS[+v],true); };
+  sel.onchange=()=>{ const v=sel.value; sel.value=''; if(v==='tg'){ setVis(!!DM.diaryOff); dmSave(); return; } if(DM.diaryOff){ setVis(true); dmSave(); } stopTour();
+    if(v==='play'){ play(0); } else if(v==='q'){ open(QUEST,false); } else if(v==='tu'){ open(TURGEN,false); } else if(v==='all'){ closeInfo(); const cx=(W.x+F.x)/2, cz=(W.z+F.z)/2; flyTo(new THREE.Vector3(cx,HQ?760:980,cz+330), new THREE.Vector3(cx,0,cz), 1800); } else if(v!=='') open(STOPS[+v],true); };
   // --- co je vidět přímo v mapě
   const egg=(g,x,z,sc,max,anim)=>{ g.position.set(x,Math.max(ground(x,z),0),z); g.scale.setScalar(sc); scene.add(g); dGroups.push(g); eggs.push({g,max,anim:(t)=>{ if(g.userData.off){ g.visible=false; return; } if(anim) anim(t); }}); return g; };
   // Goldenfields: zachráněný ent, záhon mladých stromků a opuštěný skřetí tábor
