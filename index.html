@@ -2225,7 +2225,7 @@ My ostatní jsme mezitím měli jinou starost. Na lodi s námi totiž jel druid.
 Sledoval jsem ho. Jak jí, jak se dívá na vodu, jak se baví s Niri. Čekal jsem na ten okamžik, kdy se mu úsměv nesejde s očima. Jednou už jsem takový okamžik přehlédl. Jmenovala se Katja a stálo mě to Fenjiho a Truxe. Podruhé se mi to nestane – nebo si to aspoň budu dál opakovat.
 
 Na nic jsem nepřišel. Zrádce se podle obličeje nepozná, to vím líp než kdo jiný. Já si obličeje měním jako jiní košile.`;
-const DIARY_FIRE=`A pak jsme připluli do Fireshaeru.
+const DIARY_FIRE=`A pak jsme připluli do Fireshearu.
 
 Mor jsme porazili. Na palubě už nikdo nekašle krev a Ray je na sebe právem trochu pyšný – dokonce už začal plánovat, jakou medovinou to oslavíme. Radost nám ale vydržela přesně do chvíle, kdy jsme uviděli přístav. Město hořelo. A na obzoru se vzdalovala loď ledových obrů – obrovská, jako by se ledovec rozhodl, že si vyrazí na moře. Podle všeho tu byli jen pár hodin před námi.
 
@@ -2233,7 +2233,7 @@ Jednu pohromu jsme tedy zastavili a druhá nás mezitím předběhla. Tak už to
 
 Nemesis, jestli posloucháš: snažím se být trpělivý, opravdu. Ale ten seznam dlužníků mi poslední dobou nějak rychle roste.`;
 const TURGEN_STORY=`Dítě dvou nocí
-Turgen se narodil roku 1470 jako syn dvou velmi rozdílných rodičů. Otec Tamis je měňavec, zloděj a mocný mág, který zná tajemství sfér a Sigilu. Dnes slouží Chronosovi jako ochránce jeho bludiště. Matka Gatria je drowka a kněžka Elistrae. Po otci zdědil Turgen schopnost měnit tvář, po matce temnozrak a drowí krev. Nepatří tak úplně do žádného světa.
+Turgen se narodil roku 1470 jako syn dvou velmi rozdílných rodičů. Otec Tamis je měňavec, zloděj a mocný mág, který zná tajemství sfér a Sigilu. Dnes slouží Chronosovi jako ochránce jeho bludiště. Matka Gatria je drowka a kněžka Eilistraee. Po otci zdědil Turgen schopnost měnit tvář, po matce temnozrak a drowí krev. Nepatří tak úplně do žádného světa.
 
 Trhov
 Vyrůstal v Trhově, městě, kde se všechno kupuje a krade. Měl dva nejlepší přátele: chytrého hobita Fenjiho a mlčenlivého trpaslíka Truxe. Všichni tři kradli, protože v Trhově to bylo snadné a protože si mysleli, že jim svět patří.
@@ -2248,7 +2248,7 @@ Družina
 V Hlubině se seznámil s paladinem Rayem, goliášem Zackem a elfskou druidkou Niri. V Goldenfields spolu odhalili spiknutí Zhentarimu, odrazili invazi skřetů a zachránili enta. Za odměnu dostali semena vlastních stromů. Turgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.
 
 Plavba na sever
-Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. Někdo do nákladu podstrčil bednu s nakaženými blechami a za vším stáli temní druidi. Ray zachránil posádku rumem a vykuřovadlem a Zack se mezitím zhulil s kormidelníkem. Turgen podezíral druida na lodi, jestli to není jejich člověk. V Katjině případě kdysi zradu přehlédl a podruhé už nechce. Mor porazili, ale když dopluli do Fireshaeru, město hořelo. Pár hodin před nimi ho napadli ledoví obři a na obzoru ještě viděli odplouvat jejich obrovskou loď.
+Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. Někdo do nákladu podstrčil bednu s nakaženými blechami a za vším stáli temní druidi. Ray zachránil posádku rumem a vykuřovadlem a Zack se mezitím zhulil s kormidelníkem. Turgen podezíral druida na lodi, jestli to není jejich člověk. V Katjině případě kdysi zradu přehlédl a podruhé už nechce. Mor porazili, ale když dopluli do Fireshearu, město hořelo. Pár hodin před nimi ho napadli ledoví obři a na obzoru ještě viděli odplouvat jejich obrovskou loď.
 
 Kde je teď
 Turgen je na 4. úrovni, právě se odvrátil od Masky k Nemesis a s družinou dorazil na zamrzlý sever. Na Katju nezapomněl, jen se učí trpělivosti.`;
@@ -2261,13 +2261,16 @@ Turgen je na 4. úrovni, právě se odvrátil od Masky k Nemesis a s družinou d
   const tg=new THREE.BufferGeometry(); tg.setAttribute('position',new THREE.BufferAttribute(pos,3));
   const trail=new THREE.Points(tg,new THREE.PointsMaterial({color:0xf2c14e,size:HQ?4.5:3.5,sizeAttenuation:false,transparent:true,opacity:0.95,depthWrite:false,fog:false})); trail.frustumCulled=false; trail.renderOrder=5; scene.add(trail);
   const seaMid=sea[Math.floor(sea.length*0.55)];
+  const mid=land[2];
   const STOPS=[
-    {n:'①',t:'Hlubina – seznámení družiny',sub:'Deník družiny · 1. zastávka',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,
-     txt:'V Hlubině se Turgen seznámil s paladinem Rayem, goliášem Zackem a elfskou druidkou Niri. Odtud družina vyrazila do Goldenfields a později lodí na sever.\n\nRay – paladin Silvana, bývalý medovinář z Desetiměstí.\nZack – goliáš a válečník.\nNiri – elfka a druidka.\nTurgen – měňavec, který nikomu nevěří a obličeje mění jako jiní košile.\n\n(Podrobný zápis z deníku k seznámení zatím chybí.)'},
-    {n:'②',t:'Goldenfields – spiknutí a obrana',sub:'Deník družiny · 2. zastávka',x:G.x,z:G.z,dy:1.6,d:7,
-     txt:'V Goldenfields družina odhalila spiknutí Zhentarimu, odrazila invazi skřetů a zachránila enta. Za odměnu dostali semena vlastních stromů.\n\nTurgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.\n\n(Podrobný zápis z deníku zatím chybí.)'},
-    {n:'③',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3. zastávka · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
-    {n:'④',t:'Fireshear v plamenech',sub:'Turgenův deník · 4. zastávka',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
+    {n:'①',t:'Hlubina – verbování a zimní učení',sub:'Deník družiny · 3. 12. a 8. 12. – 3. 1.',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,
+     txt:'3. prosince ráno – sídlo Remallie Haventree\nV Hlubině se Turgen seznámil s paladinem Rayem, goliášem Zackem a elfskou druidkou Niriel, které nikdo neřekne jinak než Niri. Družinu naverbovala Remallia, agentka Harfeníků, kvůli tomu, co se děje na severu. První úkol: najít v Goldenfields Semila Southwilla, který se tam po příchodu ze severu schoval, a zjistit od něj podrobnosti.\n\n8.–29. prosince – přestup na 4. úroveň\nPo návratu z Goldenfields se každý někde učil. Niri meditovala. Ray sloužil ve Městě mrtvých (hlubinský hřbitov). Zack trénoval. Turgen byl ve službě u „zrzka“ – půlelfa Haldrica, který ho učil zlodějské řemeslo: pohyb městem po střechách a kanalizací.\n\n29. prosince – dýchánek u Remallie\nZprávy o tom, co se děje na severu. Je čas vyrazit.\n\n30. prosince – oslava Nového roku.\n\n3. ledna – odjezd lodí z Hlubiny se zásobami pro Desetiměstí.'},
+    {n:'②',t:'Na cestě – karavana a noční návštěva',sub:'Deník družiny · 4.–5. 12.',x:mid[0],z:mid[1],dy:1.2,d:9,
+     txt:'4. prosince – podivná karavana\nCestou do Goldenfields družina potkala divnou skupinu s karavanou. Mohla patřit k Zhentarimu.\n\nNoc na 5. prosince – Elis Dewin\nV noci, ještě než družina došla do Goldenfields, se u tábora podivně objevil drow Elis Dewin, majitel hlubinské krčmy Crawling Spider.'},
+    {n:'③',t:'Goldenfields – spiknutí a bitva',sub:'Deník družiny · 5.–6. 12.',x:G.x,z:G.z,dy:1.6,d:7,
+     txt:'Semile Southwille\nDružina ho našla a zjistila od něj, co se na severu děje. Dal jim dokonce mapu Severu a Desetiměstí.\n\nSpiknutí Zhentarimu\nDružina upozorňovala opata Ellardina Darovika z opatství Harvesthome na možnost infiltrace. Bylo to dost marné. Jeho zástupkyně, Chaunteina akolytka Zi Liang původem z východu, byla naopak skvělá.\n\n6. prosince – bitva o Goldenfields\nPři útoku skřetů vedla celou obranu Zi Liang a družina pomohla invazi odrazit. Zachránila přitom enta – probuzený strom, v modulu Lifferlas – a za odměnu dostala semena vlastních stromů. Turgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.\n\nOren Yogilvy o družině složil píseň.\n\n8. prosince – návrat do Hlubiny.'},
+    {n:'④',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3.–19. 1. · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:'3. ledna odjezd z Hlubiny · 5. ledna objeven mor · 7. ledna mor ustupuje\n\n'+DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
+    {n:'⑤',t:'Fireshear v plamenech',sub:'Turgenův deník · 19. 1.',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
   // karta: dlouhý text s odstavci a přehrávač písně
   const st=document.createElement('style'); st.textContent='.lbl.diary{font:700 13px/1 Inter,system-ui,sans-serif;color:#2a1c05;background:#f2c14e;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5);text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap} body.nodiary .lbl.diary{display:none!important} #info.diary #infoDesc{white-space:pre-line;max-height:42vh;overflow-y:auto;padding-right:6px}'; document.head.appendChild(st);
   const aud=el('audio',{id:'diaryAud',controls:'',preload:'none',style:'width:100%;margin-top:10px;display:none'}); vid.after(aud);
