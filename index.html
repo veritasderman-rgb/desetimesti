@@ -254,6 +254,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 // ================================================================ noise
 function hash(ix, iy){ let h = Math.imul(ix,374761393) ^ Math.imul(iy,668265263); h = Math.imul(h ^ (h>>>13), 1274126177); h ^= h>>>16; return (h>>>0)/4294967295; }
@@ -275,7 +276,11 @@ function b64buf(s){ const bin=atob(s.trim()), u=new Uint8Array(bin.length); for(
 
 // ================================================================ geography  (1 jednotka = 1 míle, sever = −z, Bryn Shander = 0,0)
 // Desetiměstí podle plakátové mapy z Rime of the Frostmaiden, Sever podle přehledové mapy, okolí Hlubiny podle mapy Pobřeží mečů.
-const B = {x0:-212, x1:660, z0:-95, z1:560}, B0 = {x0:-212, x1:480, z0:-95, z1:560};   // B0 = původní výřez (malované mapy a minimapa)
+// Jih (od Triboaru dolů) byl proti skutečným vzdálenostem stlačený. WZ ho roztahuje sever–jih podle údajů z Forgotten Realms Wiki:
+// Letohrad–Leilon ~100 mil, Hlubina–Amphail 3 dny jízdy (~70 mil), Hlubina–Red Larch 7 dní jízdy, Hlubina–Triboar ~13 dní vozem. Okolí Hlubiny se jen posouvá (plán města zůstává).
+const WZ = z => z<=310 ? z : z<=448 ? 310+(z-310)*1.7 : z<=468 ? 544.6+(z-448)*3.16 : z<=498 ? z+139.8 : 637.8+(z-498)*6;
+const WZF = z => z<=310 ? 1 : z<=448 ? 1.7 : z<=468 ? 3.16 : z<=498 ? 1 : 6;
+const B = {x0:-212, x1:660, z0:-95, z1:780}, B0 = {x0:-212, x1:480, z0:-95, z1:560};   // B0 = původní výřez (malované mapy a minimapa)
 const DALE = {x:6, z:-2};
 const EX = 1.6, FT = EX/5280;            // města Desetiměstí jsou 1,6× zvětšená proti krajině, jinak by nebyla vidět
 const ICE_Y = 0.035, SHORE_Y = 0.02;
@@ -392,7 +397,7 @@ function lakeSD(x,z){ let best=null; for(const L of LAKES){ const b=L.bb; if(x<b
 const inLake = (x,z) => { const s=lakeSD(x,z); return !!(s&&s.inside); };
 
 // ---------------------------------------------------------------- Hlubina podle plánu města (pixely plánu; 65 px = 1000 stop; město je 2× zvětšené)
-const WD = { O:[296.5,475], K:0.005828 };
+const WD = { O:[296.5,614.8], K:0.005828 };
 WD.G = p => [WD.O[0]+(p[0]-1040)*WD.K, WD.O[1]+(p[1]-790)*WD.K];
 WD.outline = pp('(810,180)(860,210)(1100,250)(1270,350)(1250,420)(1270,600)(1280,800)(1265,950)(1290,1060)(1310,1130)(1300,1250)(1340,1370)(1250,1385)(1180,1305)(1100,1255)(1030,1200)(960,1165)(900,1135)(820,1125)(770,1130)(740,1050)(770,960)(800,900)(820,820)(810,740)(740,620)(730,560)(790,470)(800,350)(800,250)').map(WD.G);
 WD.harbor = pp('(820,1125)(900,1135)(960,1165)(1030,1200)(1100,1255)(1180,1305)(1250,1385)(1340,1372)(1330,1440)(1280,1560)(790,1560)(730,1300)(750,1140)').map(WD.G);
@@ -493,7 +498,7 @@ function terrain0(x,z){
   h = L*h + (1-L)*(-0.5);
   if(near){ const ls=lakeSD(x,z); let ins=false; if(ls){ ins=ls.inside; if(ins) h = SHORE_Y - 0.1*smooth(0.06,0.4,ls.d); else { const kk=smooth(0,3.2,ls.d); h = SHORE_Y + (Math.max(h,SHORE_Y)-SHORE_Y)*kk*kk; } }
     if(!ins){ h += gauss(x,z,0.5)*0.2; for(const H of HILLS) h += gauss(x-H[0],z-H[1],H[2]*1.6)*H[3]*(ls?smooth(0.02,0.3,ls.d):1); } }
-  if(Math.abs(x-296.5)<13 && Math.abs(z-475.5)<14){        // Hlubina: město na rovině u moře, okolí se k němu plynule svažuje
+  if(Math.abs(x-296.5)<13 && Math.abs(z-WD.O[1]-0.5)<14){        // Hlubina: město na rovině u moře, okolí se k němu plynule svažuje
     const inC=inPoly(x,z,WD.outline);
     if(inC) h = 0.15 + 0.04*fbm(x*0.9,z*0.9,2);
     else if(h>0.17){ const k=smooth(0.15,7,distPoly(x,z,WD.outC)); h = 0.17 + (h-0.17)*k; }
@@ -793,6 +798,13 @@ CITIES.push(
   {id:'carnath', name:"Carnath Roadhouse", x:212, z:397, s:2.4, r:0.5, n:2, minor:true, site:true, sub:"Vysoká cesta · Močál mrtvých · poloha přibližně",
    desc:"Opevněný zájezdní hostinec na Vysoké cestě uprostřed močálu."},
 );
+{ const wp=(p)=>{ p[1]=+WZ(p[1]).toFixed(2); };
+  for(const r of ROADS) r.p.forEach(wp); for(const r of RIVERS) r.p.forEach(wp);
+  for(const t of CITIES) t.z=+WZ(t.z).toFixed(2);
+  for(const R_ of RANGES){ const f=WZF(R_[1]); R_[1]=WZ(R_[1]); R_[3]*=f; }
+  for(const F of FORESTS){ const f=WZF(F[1]); F[1]=WZ(F[1]); F[3]*=f; }
+  for(const Q of FPOLY){ Q.pts.forEach(wp); Q.closed=Q.pts.concat([Q.pts[0]]); let z0=1e9,z1=-1e9; for(const p of Q.pts){ z0=Math.min(z0,p[1]); z1=Math.max(z1,p[1]); } Q.bb[2]=z0; Q.bb[3]=z1; }
+  MERE[1]=WZ(MERE[1]); MERE[3]*=1.7; for(const p of COAST) p[0]=WZ(p[0]); for(let i=0;i<PORTS_Z.length;i++) PORTS_Z[i]=WZ(PORTS_Z[i]); }
 const ALL = [...TEN, ...CITIES];
 const byId = Object.fromEntries(ALL.map(t=>[t.id,t]));
 
@@ -854,7 +866,7 @@ controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
 const PORTRAIT = window.innerWidth < window.innerHeight;
 const VIEW = {
   dale:   PORTRAIT ? {t:[6.5,0,-1.5], o:[0,50,24]}  : {t:[6,0,-2],  o:[3,15,19]},
-  region: PORTRAIT ? {t:[190,0,250], o:[0,1050,560]} : {t:[185,0,240], o:[0,640,470]},
+  region: PORTRAIT ? {t:[224,0,345], o:[0,1320,600]} : {t:[224,0,345], o:[0,900,620]},
 };
 const v3=(a)=>new THREE.Vector3(a[0],a[1],a[2]);
 controls.target.copy(v3(VIEW.dale.t)); camera.position.copy(v3(VIEW.dale.t)).add(v3(VIEW.dale.o));
@@ -903,7 +915,7 @@ function axis(a0,a1,b0,b1,fine,maxStep,g){
 }
 const XS = axis(B.x0,B.x1,-7,22,HQ?0.15:0.24,HQ?2.0:3.6,1.07), ZS = axis(B.z0,B.z1,-13.5,9,HQ?0.15:0.24,HQ?2.0:3.6,1.07);
 { const add=(arr,a,b,st)=>{ for(let v=a; v<=b; v+=st) arr.push(v); arr.sort((p,q)=>p-q); for(let i=arr.length-1;i>0;i--) if(arr[i]-arr[i-1]<st*0.45) arr.splice(i,1); };
-  add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,469.6,481.2,HQ?0.14:0.24);
+  add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,WD.O[1]-5.4,WD.O[1]+6.2,HQ?0.14:0.24);
   const add2=(arr,a,b,st)=>{ const base=arr.slice(), out=[]; let j=0; for(let v=a; v<=b; v+=st){ while(j<base.length-1 && base[j+1]<=v) j++; const d=Math.min(Math.abs(v-base[j]), j<base.length-1?Math.abs(base[j+1]-v):1e9); if(d>=st*0.55) out.push(v); } for(const v of out) arr.push(v); arr.sort((p,q)=>p-q); };
   add2(XS,70,130,HQ?0.6:1.0); add2(ZS,48,94,HQ?0.6:1.0);
   add2(ZS,-42,52,HQ?1.0:1.8); if(HQ) add2(XS,-60,235,1.5); }      // jemná mřížka pod Hlubinou
@@ -1032,7 +1044,7 @@ function ribbon(pts, wNear, wFar, mat, lift){
 }
 
 // ================================================================ města
-const HREC=[], LAND=[], PLANH=[], PROPS=[]; let bm, rm;
+const HREC=[], LAND=[], PLANH=[], PROPS=[], TREEM=[]; let bm, rm;
 const boxes=[], roofs=[], wins=[], glows=[], TREES=[], POIS=[];
 const addBox=(x,z,yb,sx,sy,sz,ry,col)=>boxes.push([x,yb+sy/2,z,sx,sy,sz,ry,col]);
 const glowTex = (()=>{ const s=128, cv=document.createElement('canvas'); cv.width=cv.height=s; const g=cv.getContext('2d');
@@ -1191,6 +1203,7 @@ CITIES.filter(t=>!t.custom).forEach(buildTown);
       if(F[5]>1 && riverD(x,z)<1.25) continue;   // řeky v lesích nesmí zmizet pod korunami
       if(ALL.some(t=>Math.hypot(x-t.x,z-t.z)<(t.site&&F[5]>1?Math.max(1.7,t.r*1.08):t.r*1.08))) continue; if(F[5]>1 && Math.hypot(x-160.5,z-296.5)<1.5) continue;
       TREES.push([x,z,F[5]*(0.7+r()*0.7),fi]); placed++; } });
+  // z velké výšky se kreslí jen část stromů (les vypadá stejně, ale je to výrazně méně práce)
   // stromy: pět druhů, instancované po lesích (aby se celé lesy mimo záběr nekreslily); na mobilu zjednodušené tvary
   { const mergeG=(parts)=>{ const P=[], C=[]; for(const [g0,x,y,z,col,sx,sy,sz] of parts){ const n=g0.index?g0.toNonIndexed():g0; n.scale(sx||1,sy||1,sz||sx||1); n.translate(x,y,z); const a=n.attributes.position.array, c=new THREE.Color(col); for(let k=0;k<a.length;k+=3){ P.push(a[k],a[k+1],a[k+2]); C.push(c.r,c.g,c.b); } }
       const G=new THREE.BufferGeometry(); G.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); G.setAttribute('color',new THREE.Float32BufferAttribute(C,3)); G.computeVertexNormals(); return G; };
@@ -1221,15 +1234,15 @@ CITIES.filter(t=>!t.custom).forEach(buildTown);
       L.forEach(([T,k],n)=>{ const h=ground(T[0],T[1]), s=T[2], sy=s*(0.8+hs2(k,4)*0.55), sx=s*(0.85+hs2(k,5)*0.35);
         o.position.set(T[0],h-0.02*s,T[1]); o.scale.set(sx,sy,sx); o.rotation.set((hs2(k,6)-0.5)*0.14,hs2(k,7)*6.283,(hs2(k,8)-0.5)*0.14); o.updateMatrix(); gm.setMatrixAt(n,o.matrix); sm.setMatrixAt(n,o.matrix);
         const b=0.78+hs2(k,9)*0.44; col.setRGB(b*(0.92+hs2(k,10)*0.16),b,b*(0.9+hs2(k,11)*0.2)); gm.setColorAt(n,col); });
-      if(gm.instanceColor) gm.instanceColor.needsUpdate=true; gm.computeBoundingSphere(); sm.computeBoundingSphere(); sm.visible=SEASON.patch>0.6; scene.add(gm,sm); caps.push(sm); };
+      if(gm.instanceColor) gm.instanceColor.needsUpdate=true; gm.computeBoundingSphere(); sm.computeBoundingSphere(); sm.visible=SEASON.patch>0.6; scene.add(gm,sm); caps.push(sm); TREEM.push([gm,sm,L.length]); };
     SEASON_OBJ.trees={caps,decid:{material:mats[3]}};
     // sever (Desetiměstí a okolí) hned, zbytek mapy postupně od severu k jihu, aby se úvodní načtení nezdržovalo
-    const later=[]; for(const [key,L] of groups){ const f=+key.split('|')[0], fz=f>=0?FORESTS[f][1]:(f===-2?475:0); if(fz<70) buildG(key,L); else later.push([fz,key,L]); }
+    const later=[]; for(const [key,L] of groups){ const f=+key.split('|')[0], fz=f>=0?FORESTS[f][1]:(f===-2?WD.O[1]:0); if(fz<70) buildG(key,L); else later.push([fz,key,L]); }
     later.sort((p,q)=>p[0]-q[0]); const step=()=>{ const t0=performance.now(); while(later.length && performance.now()-t0<10){ const [,key,L]=later.shift(); buildG(key,L); } if(later.length) setTimeout(step,70); }; setTimeout(step,900); }
 }
 
 // pole a statky (zimní šachovnice; Goldenfields zlatě)
-const FARMS=[[320,456,22,26,340,0],[332,426,3.1,3.1,70,1],[295,448,5,5,35,0],[341,507,8,7,45,0],[128,278,8,10,55,0],[336,312,10,8,60,0],[323,388,6,6,30,0],[181,334,4,4,14,0],[393,309,6,5,30,0],[287,210,5,5,25,0]];
+const FARMS=[[320,456,22,26,340,0],[332,426,3.1,3.1,70,1],[295,448,5,5,35,0],[341,507,8,7,45,0],[128,278,8,10,55,0],[336,312,10,8,60,0],[323,388,6,6,30,0],[181,334,4,4,14,0],[393,309,6,5,30,0],[287,210,5,5,25,0]].map(F=>{ const f=WZF(F[1]); return [F[0],WZ(F[1]),F[2],F[3]*Math.min(f,1.7),F[4],F[5]]; });
 { const r=mulberry(404), pal=[0x8a7350,0xb5a67a,0xd6d3c4,0x6f8055,0x9c8c5e,0xc9c6b8], gold=[0xc9a94e,0xd8bd62,0xb8963c,0xe0c877], F=[];
   for(const Z of FARMS){ const n=Math.round(Z[4]*(HQ?1:0.4)), base=r()*Math.PI, mine=[]; let tries=0;
     while(mine.length<n && tries<n*40){ tries++; const a=r()*6.283, d=Math.sqrt(r()), x=Z[0]+Math.cos(a)*d*Z[2], z=Z[1]+Math.sin(a)*d*Z[3];
@@ -1396,7 +1409,7 @@ addLabel('Desetiměstí', 6,-2,1.5, 'city big', {click:()=>flyView('dale'), min:
  ['Vysoká cesta',104,244,2.5,'small',420],['Dlouhá cesta',281,165,2.5,'small',620],['Triboarská stezka',240,297,2.5,'small',420],['Blackfordská cesta',172,82,2.5,'small',420],
  ['Obchodní cesta',324,496,2.5,'small',300],['Železná cesta',400,425,2.5,'small',420],['Mohylová cesta',335,399,2,'small',160],
  ['řeka Mirar',150,100,2.5,'small',420],['řeka Dessarin',371,348,2.5,'small',620],['řeka Delimbiyr',400,498,2.5,'small',420],['Ardeep',333,463,3,'small',300],['Zundbridge',305,481,2,'small',160],
-].forEach(([n,x,z,dy,c,max,min])=>addLabel(n,x,z,dy,'region '+c+(DESC[n]?' click':''),{max,min,click:DESC[n]?()=>showNote(n,'',DESC[n]):null}));
+].forEach(([n,x,z,dy,c,max,min])=>addLabel(n,x,WZ(z),dy,'region '+c+(DESC[n]?' click':''),{max,min,click:DESC[n]?()=>showNote(n,'',DESC[n]):null}));
 const vtmp=new THREE.Vector3();
 function updateLabels(){
   const w=canvas.clientWidth, h=canvas.clientHeight, dens=scene.fog.density;
@@ -1419,7 +1432,7 @@ const eggs=[];
 const MAT=(c,o={})=>new THREE.MeshStandardMaterial({color:c, roughness:0.85, flatShading:true, ...o});
 const GEO={box:new THREE.BoxGeometry(1,1,1), cone:new THREE.ConeGeometry(0.5,1,6), cyl:new THREE.CylinderGeometry(0.5,0.5,1,8)};
 function part(parent,geo,mat,px,py,pz,sx,sy,sz,rx=0,ry=0,rz=0){ const m=new THREE.Mesh(GEO[geo],mat); m.position.set(px,py,pz); m.scale.set(sx,sy,sz); m.rotation.set(rx,ry,rz); parent.add(m); return m; }
-function addEgg(g,x,z,scale,max,anim,y){ g.position.set(x, y??ground(x,z), z); g.scale.setScalar(scale); scene.add(g); eggs.push({g,max,anim}); return g; }
+function addEgg(g,x,z,scale,max,anim,y){ z=WZ(z); g.position.set(x, y??ground(x,z), z); g.scale.setScalar(scale); scene.add(g); eggs.push({g,max,anim}); return g; }
 function humanoid(skin,cloth,weapon){ const g=new THREE.Group(), ms=MAT(skin), mc=MAT(cloth);
   part(g,'box',mc,-0.12,0.22,0,0.16,0.44,0.18); part(g,'box',mc,0.12,0.22,0,0.16,0.44,0.18); part(g,'box',mc,0,0.62,0,0.46,0.38,0.26); part(g,'box',ms,0,0.92,0,0.22,0.22,0.22);
   const aL=new THREE.Group(); aL.position.set(-0.3,0.78,0); part(aL,'box',ms,0,-0.2,0,0.12,0.42,0.12); g.add(aL);
@@ -1488,7 +1501,7 @@ if(HQ){
     const P=ROADS[0].p; addEgg(g,0,0,0.016,5,(t)=>{ const p=(t/140)%2, fwd=p<1, k=(fwd?p:2-p)*(P.length-1)*0.999, i=Math.floor(k), f=k-i, x=P[i][0]+(P[i+1][0]-P[i][0])*f, z=P[i][1]+(P[i+1][1]-P[i][1])*f;
       g.position.set(x,ground(x,z)+0.004,z); const hd=Math.atan2(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1]); g.rotation.y=fwd?hd:hd+Math.PI; }); }
   // gryfí jezdci nad Hlubinou
-  for(let i=0;i<3;i++){ const gf=flyer(0x8a6a3a,0xc9a86a); griffonGroups.push(gf); addEgg(gf,295,475,0.3,170,orbit(gf,295,475,4+i*0.9,5+i*0.7,0.3,9,i*2.1),5); }
+  for(let i=0;i<3;i++){ const gf=flyer(0x8a6a3a,0xc9a86a); griffonGroups.push(gf); addEgg(gf,295,WD.O[1],0.3,170,orbit(gf,295,WD.O[1],4+i*0.9,5+i*0.7,0.3,9,i*2.1),5); }
   // větrné mlýny v polích u Hlubiny
   for(const [x,z] of [[312,452],[322,468],[326,446],[308,438],[335,458],[318,440]]){ const g=new THREE.Group(); part(g,'cone',MAT(0xb9b2a2),0,0.6,0,0.6,1.2,0.6); part(g,'cone',MAT(0x7a3b2e),0,1.3,0,0.5,0.3,0.5);
     const bl=new THREE.Group(); bl.position.set(0,1.05,0.34); const bm=MAT(0xe8e2d0); part(bl,'box',bm,0,0,0,0.12,1.6,0.02); part(bl,'box',bm,0,0,0,1.6,0.12,0.02); g.add(bl); g.rotation.y=x; millGroups.push(g); addEgg(g,x,z,0.8,230,(t)=>{ bl.rotation.z=t*0.8+x; }); }
@@ -1496,13 +1509,14 @@ if(HQ){
 
 
 // ================================================================ 3D modely (GLB vložené ve stránce) nahradí jednoduché tvary, jakmile se načtou
-const MODELS={}, gltfLoader=new GLTFLoader();
+const MODELS={}, gltfLoader=new GLTFLoader(); gltfLoader.setMeshoptDecoder(MeshoptDecoder);
 function prepModel(gl){ let mesh=null; gl.scene.updateMatrixWorld(true); gl.scene.traverse(o=>{ if(o.isMesh&&!mesh) mesh=o; });
-  const geo=mesh.geometry.clone().applyMatrix4(mesh.matrixWorld); geo.computeBoundingBox(); const bb=geo.boundingBox;
+  const geo=mesh.geometry.clone(); for(const an of ['position','normal']){ const p=geo.attributes[an]; if(p && !(p.array instanceof Float32Array)){ const f=new Float32Array(p.count*3); for(let i=0;i<p.count;i++){ f[i*3]=p.getX(i); f[i*3+1]=p.getY(i); f[i*3+2]=p.getZ(i); } geo.setAttribute(an,new THREE.BufferAttribute(f,3)); } }
+  geo.applyMatrix4(mesh.matrixWorld); geo.computeBoundingBox(); const bb=geo.boundingBox;
   geo.translate(-(bb.min.x+bb.max.x)/2, -bb.min.y, -(bb.min.z+bb.max.z)/2);
   return {geo, mat:mesh.material, dx:bb.max.x-bb.min.x, dy:bb.max.y-bb.min.y, dz:bb.max.z-bb.min.z}; }
 const MODSRC={}; let modAsk=0, modDone=0; const modStat=()=>{ const el=document.getElementById('mstat'); if(el){ el.textContent=modDone<modAsk?`Načítám modely ${modDone}/${modAsk}`:''; } };
-const MGRP={"ship": "lite", "dragon": "lite", "giant": "lite", "castle": "lite", "tower": "lite", "wizard": "lite", "kraken": "lite", "house": "houses", "inn": "houses", "long": "houses", "town": "houses", "manor": "houses", "house2": "houses", "house3": "houses", "house5": "houses", "house6": "houses", "house7": "houses", "ptower": "houses", "tavern": "houses", "smithy": "houses", "granary": "houses", "guardhouse": "houses", "temple": "houses", "burgher": "houses", "halftimber": "houses", "fishrack": "props", "stalls": "props", "well": "props", "crane": "props", "rowboat": "props", "trawler": "props", "iceboats": "props", "citytower": "props", "citygate": "props", "lighthouse": "props", "cathedral": "props", "kelvin": "marks", "crater": "marks", "tooth": "marks", "oak": "marks", "cragmaw": "marks", "xinlenal": "marks", "circle": "marks", "reghed": "marks", "gobcamp": "marks", "mine": "marks", "icecave": "marks", "bear": "extra", "cat": "extra", "griffon": "extra", "mammoth": "extra", "mill": "extra", "reindeer": "extra", "remorhaz": "extra", "sled": "extra", "tent": "extra", "wolf": "extra", "yeti": "extra"}, MGRP_L={house5:'hlite',house6:'hlite',house7:'hlite'}, grpP={}; const grp=(g)=>grpP[g]||(grpP[g]=((HQ||g==='lite'||g==='marks'||g==='hlite')?import('./models_'+g+'.js').then(m=>Object.assign(MODSRC,m.default)).catch(()=>null):Promise.resolve(null)));
+const MGRP={"ship": "lite", "dragon": "lite", "giant": "lite", "castle": "lite", "tower": "lite", "wizard": "lite", "kraken": "lite", "house": "houses", "inn": "houses", "long": "houses", "town": "houses", "manor": "houses", "house2": "houses", "house3": "houses", "house5": "houses", "house6": "houses", "house7": "houses", "dwarfhouse": "houses", "elfhouse": "houses", "elftower": "houses", "ptower": "houses", "tavern": "houses", "smithy": "houses", "granary": "houses", "guardhouse": "houses", "temple": "houses", "burgher": "houses", "halftimber": "houses", "fishrack": "props", "stalls": "props", "well": "props", "crane": "props", "rowboat": "props", "trawler": "props", "iceboats": "props", "citytower": "props", "citygate": "props", "lighthouse": "props", "cathedral": "props", "kelvin": "marks", "crater": "marks", "tooth": "marks", "oak": "marks", "cragmaw": "marks", "xinlenal": "marks", "circle": "marks", "reghed": "marks", "gobcamp": "marks", "mine": "marks", "icecave": "marks", "bear": "extra", "cat": "extra", "griffon": "extra", "mammoth": "extra", "mill": "extra", "reindeer": "extra", "remorhaz": "extra", "sled": "extra", "tent": "extra", "wolf": "extra", "yeti": "extra"}, MGRP_L={house5:'hlite',house6:'hlite',house7:'hlite'}, grpP={}; const grp=(g)=>grpP[g]||(grpP[g]=((HQ||g==='lite'||g==='marks'||g==='hlite')?import('./models_'+g+'.js').then(m=>Object.assign(MODSRC,m.default)).catch(()=>null):Promise.resolve(null)));
 function loadModel(name){ modAsk++; modStat(); return grp((!HQ&&MGRP_L[name])||MGRP[name]||'lite').then(()=>new Promise(res=>{ const done=(v)=>{ modDone++; modStat(); res(v); }; const s=MODSRC[name]; if(!s) return done(null); try{ gltfLoader.parse(b64buf(s),'',gl=>{ MODELS[name]=prepModel(gl); done(MODELS[name]); },()=>done(null)); }catch(e){ done(null); } })); }
 function swapIn(groups,M,s,y=0,ry=0){ for(const g of groups){ g.clear(); const c=new THREE.Mesh(M.geo,M.mat); c.scale.setScalar(s); c.position.y=y; c.rotation.y=ry; g.add(c); } }
 loadModel('ship').then(M=>{ if(M) swapIn(shipGroups,M,0.85,-0.09); });
@@ -1574,8 +1588,8 @@ const SMK={n:0,list:[]}; let updateSmoke=()=>{};
     ggeo.setDrawRange(0,SMK.list.length); ggeo.attributes.position.needsUpdate=ggeo.attributes.a.needsUpdate=ggeo.attributes.s.needsUpdate=true; }; }
 // domy: nejbližší domy ke kameře se při přiblížení vymění za modely (jen na PC)
 const LODM={}, LOD_CAP=HQ?220:40, lodActive=new Set(), ZERO4=new THREE.Matrix4().makeScale(0,0,0), lodO=new THREE.Object3D(); let lodReady=false;
-const LODK=HQ?['house','inn','long','town','manor','house2','house3','house5','house6','house7','tavern','smithy','granary','guardhouse','temple','burgher','halftimber']:['house5','house6','house7'];
-let lodAsked=false; function askLOD(){ if(lodAsked) return; lodAsked=true; askProps(); Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ const hh=(r.bi*7+((r.x*53)|0)); let v=null; const south=r.city&&r.z>100; if(!HQ){ if(r.tid!=='waterdeep'&&!south&&r.k==='house') v=['house5','house6','house7'][hh%3]; } else if(r.tid==='waterdeep'){ if(r.k==='town') v=['town','burgher','halftimber','town','burgher','halftimber','town'][hh%7]; } else if(south){ v=r.k==='inn'?['tavern','manor'][hh%2]:['town','burgher','halftimber','burgher','town','halftimber','house6'][hh%7]; } else if(r.k==='house') v=['house','house2','house5','house3','house6','house7','house2','house7','house','house5','house3','house6','smithy','house2','granary','house','guardhouse','house3','house5'][hh%19]; else if(r.k==='inn') v=['inn','tavern'][hh%2]; else if(r.k==='long') v=['long','temple','long'][hh%3]; if(v&&MODELS[v]) r.k=v; } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; }); }
+const LODK=HQ?['house','inn','long','town','manor','house2','house3','house5','house6','house7','dwarfhouse','elfhouse','elftower','tavern','smithy','granary','guardhouse','temple','burgher','halftimber']:['house5','house6','house7'];
+let lodAsked=false; function askLOD(){ if(lodAsked) return; lodAsked=true; askProps(); Promise.all(LODK.map(loadModel)).then(()=>{ for(const r of HREC){ const hh=(r.bi*7+((r.x*53)|0)); let v=null; const south=r.city&&r.z>100; if(!HQ){ if(r.tid!=='waterdeep'&&!south&&r.k==='house') v=['house5','house6','house7'][hh%3]; } else if(r.tid==='waterdeep'){ if(r.k==='town') v=['town','burgher','halftimber','town','burgher','halftimber','town'][hh%7]; } else if(r.city&&r.tid==='mirabar'){ v=r.k==='inn'?'smithy':['dwarfhouse','dwarfhouse','house7','dwarfhouse','guardhouse'][hh%5]; } else if(r.city&&(r.tid==='silverymoon'||r.tid==='everlund')){ v=r.k==='inn'?'elftower':['elfhouse','halftimber','elfhouse','burgher','elfhouse'][hh%5]; } else if(south){ v=r.k==='inn'?['tavern','manor'][hh%2]:['town','burgher','halftimber','burgher','town','halftimber','house6'][hh%7]; } else if(r.k==='house') v=['house','house2','house5','house3','house6','house7','house2','house7','house','house5','house3','house6','smithy','house2','granary','house','guardhouse','house3','house5'][hh%19]; else if(r.k==='inn') v=['inn','tavern'][hh%2]; else if(r.k==='long') v=['long','temple','long'][hh%3]; if(v&&MODELS[v]) r.k=v; } for(const k of LODK){ const M=MODELS[k]; if(!M) continue; const im=new THREE.InstancedMesh(M.geo,M.mat,LOD_CAP); im.count=0; im.frustumCulled=false; scene.add(im); LODM[k]=im; } lodReady=true; }); }
 function updateLOD(){ if(!lodReady){ if(camD<(HQ?45:10)) askLOD(); return; } const tx=controls.target.x, tz=controls.target.z, cand=[];
   for(const r of HREC){ if(!LODM[r.k]) continue; const s=Math.max(r.w,r.l); if(camD>s*300) continue; const d=Math.hypot(r.x-tx,r.z-tz); if(d<camD*1.3+s*4) cand.push([d,r]); }
   cand.sort((a,b)=>a[0]-b[0]); const next=new Set(cand.slice(0,LOD_CAP).map(c=>c[1]));
@@ -1769,19 +1783,19 @@ window.addEventListener('resize', resize); resize();
 const SND={on:false, ctx:null, g:{}};
 async function startSound(){ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); SND.ctx=ctx; SND.master=ctx.createGain(); SND.master.gain.value=0.9; SND.master.connect(ctx.destination);
     const SRC=(await import('./sounds.js')).default;
-    for(const k of ['wind','storm','sea','ice','harbor','town','music']){ if(!SRC[k]) continue; const buf=await ctx.decodeAudioData(b64buf(SRC[k])); const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; const g=ctx.createGain(); g.gain.value=0; src.connect(g); g.connect(SND.master); src.start(); SND.g[k]=g; } }catch(e){ SND.on=false; $('btnSound').textContent='🔇 Zvuk'; } }
+    for(const k of ['wind','storm','sea','ice','harbor','town','music','musicwild','musiccity']){ if(!SRC[k]) continue; const buf=await ctx.decodeAudioData(b64buf(SRC[k])); const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; const g=ctx.createGain(); g.gain.value=0; src.connect(g); g.connect(SND.master); src.start(); SND.g[k]=g; } }catch(e){ SND.on=false; $('btnSound').textContent='🔇 Zvuk'; } }
 $('btnSound').onclick=()=>{ SND.on=!SND.on; $('btnSound').textContent=SND.on?'🔊 Zvuk':'🔇 Zvuk'; $('btnSound').classList.toggle('on',SND.on); if(SND.on && !SND.ctx) startSound(); else if(SND.ctx) (SND.on?SND.ctx.resume():SND.ctx.suspend()); };
 function updateSound(){ if(!SND.on||!SND.ctx) return; const tx=controls.target.x, tz=controls.target.z, north=1-smooth(60,260,tz), close=1-smooth(120,700,camD)*0.6;
   const seaNear=smooth(26,3,Math.abs(tx-coastX(tz)))*smooth(40,110,tz), W=state.weather;
-  let lakeN=0; if(dDale(tx,tz)<34) for(const L of LAKES) lakeN=Math.max(lakeN, smooth(7.5,3,Math.hypot(tx-L.cx,tz-L.cz))); let townN=0, harN=0; for(const c of ALL){ if(c.site) continue; const d=Math.hypot(tx-c.x,tz-c.z); townN=Math.max(townN, smooth(c.ten?c.r*1.6:2.2, c.ten?c.r*0.6:0.8, d)); if(c.sea) harN=Math.max(harN, smooth(5,1.5,d)); }
-  const tgt={ music:townN*0.42*(1-smooth(2.5,14,camD)), ice:(SEASON.ice?1:0)*lakeN*0.55*(1-smooth(6,45,camD)), town:townN*0.5*(1-smooth(0.8,5,camD)), harbor:harN*0.5*(1-smooth(4,30,camD)), wind:(0.16+0.5*W.wind*(1-W.snow*0.5))*(0.35+0.65*north)*close, storm:W.wind*W.snow*0.8*north*close, sea:seaNear*0.6*close };
+  let lakeN=0; if(dDale(tx,tz)<34) for(const L of LAKES) lakeN=Math.max(lakeN, smooth(7.5,3,Math.hypot(tx-L.cx,tz-L.cz))); let townN=0, harN=0, cityN=0, dmin=1e9; for(const c of ALL){ const d=Math.hypot(tx-c.x,tz-c.z); if(d<dmin) dmin=d; if(c.site) continue; if(!c.ten && c.z>100 && c.r>=1.3) cityN=Math.max(cityN, smooth(c.r*2.6,c.r*0.9,d)); townN=Math.max(townN, smooth(c.ten?c.r*1.6:2.2, c.ten?c.r*0.6:0.8, d)); if(c.sea) harN=Math.max(harN, smooth(5,1.5,d)); }
+  const tgt={ music:townN*(1-cityN)*0.42*(1-smooth(2.5,14,camD)), musiccity:cityN*0.4*(1-smooth(5,26,camD)), musicwild:smooth(5,12,dmin)*0.34*smooth(1.5,5,camD)*(1-smooth(70,180,camD)), ice:(SEASON.ice?1:0)*lakeN*0.55*(1-smooth(6,45,camD)), town:townN*0.5*(1-smooth(0.8,5,camD)), harbor:harN*0.5*(1-smooth(4,30,camD)), wind:(0.16+0.5*W.wind*(1-W.snow*0.5))*(0.35+0.65*north)*close, storm:W.wind*W.snow*0.8*north*close, sea:seaNear*0.6*close };
   for(const k in SND.g) SND.g[k].gain.setTargetAtTime(tgt[k], SND.ctx.currentTime, 0.8); }
 function showNote(name, sub, desc){ $('infoName').textContent=name; $('infoSub').textContent=sub||''; $('infoDesc').textContent=desc||''; $('infoPoi').style.display='none'; $('infoDist').style.display='none'; $('map2dBtn').style.display='none'; closeProbe(); $('info').classList.remove('hidden'); }
 
 const PAINT_IDS=['dale','region','bryn-shander','targos','bremen','termalaine','lonelywood','caer-dineval','caer-konig','easthaven','good-mead','dougans-hole','waterdeep','luskan','neverwinter','mirabar'];
 // ================================================================ 2D plány: kreslený plán z dat mapy + vlastní mapa nahraná ze zařízení
 const PLAN_LIST=[{id:'dale',name:'Desetiměstí',x:6.5,z:-1.5,half:15.5},{id:'region',name:'Celý Sever',x:(B.x0+B.x1)/2,z:(B.z0+B.z1)/2,half:(B.x1-B.x0)/2+10},
-  ...TEN.map(t=>({id:t.id,name:t.name,x:t.x,z:t.z,half:t.r*1.5+0.1,town:t})), {id:'waterdeep',name:'Hlubina',x:296.5,z:475.3,half:4.6,town:byId.waterdeep},
+  ...TEN.map(t=>({id:t.id,name:t.name,x:t.x,z:t.z,half:t.r*1.5+0.1,town:t})), {id:'waterdeep',name:'Hlubina',x:296.5,z:WD.O[1]+0.3,half:4.6,town:byId.waterdeep},
   ...['luskan','neverwinter','mirabar'].map(id=>{ const t=byId[id]; let R=0.5; for(const h of PLANH) if(h.tid===id) R=Math.max(R,Math.hypot(h.x-t.x,h.z-t.z)); t.planR=R; return {id,name:t.name,x:t.x,z:t.z,half:R*1.55,town:t}; })];
 const PLAN_IDS=new Set(PLAN_LIST.map(p=>p.id)); let curPlace=null, planCur=null, planTab='draw';
 function drawPlan(P,mode){ const BASE=mode!=='over', TXT=mode!=='base'; const S=1600, cv=document.createElement('canvas'); cv.width=cv.height=S; const G0=cv.getContext('2d'), rc=document.createElement('canvas'); let g=rc.getContext('2d'); const k=S/(2*P.half), X=x=>(x-P.x+P.half)*k, Z=z=>(z-P.z+P.half)*k;
@@ -1882,7 +1896,7 @@ function perfStep(d){ if(d>0.4||performance.now()-PERF.t0<6000) return; PERF.acc
 window.__perf=()=>({pr:PERF.pr,fps:PERF.fps,calls:renderer.info.render.calls,tris:renderer.info.render.triangles});
 const clock=new THREE.Clock(); const fwd=new THREE.Vector3(); let t=0, frameN=0;
 function frame(){
-  const rawdt=clock.getDelta(), dt=Math.min(0.05, rawdt); t+=dt; frameN++; perfStep(rawdt);
+  const rawdt=clock.getDelta(), dt=Math.min(0.05, rawdt); t+=dt; frameN++; perfStep(rawdt); liveStep(t,dt);
   stepAnim(performance.now()); stepKeys(dt); stepFilm(performance.now()); controls.update();
   controls.target.x=clamp(controls.target.x,B.x0+5,B.x1-5); controls.target.z=clamp(controls.target.z,B.z0+5,B.z1-5); controls.target.y=clamp(controls.target.y,0,14); if(camD<80 && !anim && !film){ const gy=ground(controls.target.x,controls.target.z); controls.target.y+=(gy-controls.target.y)*0.12; }
   const gh=ground(camera.position.x, camera.position.z)+0.03; if(camera.position.y<gh) camera.position.y=gh;
@@ -1890,7 +1904,7 @@ function frame(){
   camera.near=Math.max(0.004, camD*0.02); camera.far=camD*6+5200; camera.updateProjectionMatrix();
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   const W_=state.weather, k=1-Math.exp(-dt*1.8);
-  cur.snow+=(W_.snow-cur.snow)*k; cur.wind+=(W_.wind-cur.wind)*k; cur.fog+=(W_.fog-cur.fog)*k; cur.clouds+=(W_.clouds-cur.clouds)*k; cur.night+=((state.night?1:0)-cur.night)*k;
+  cur.snow+=(W_.snow-cur.snow)*k; cur.wind+=(W_.wind-cur.wind)*k; cur.fog+=(W_.fog-cur.fog)*k; cur.clouds+=(W_.clouds-cur.clouds)*k; cur.night+=(Math.max(state.night?1:0,nightAmt())-cur.night)*k;
   applyLook();
   auroraMat.uniforms.uTime.value=t;
   // sníh kolem kamery, velikost oblaku podle přiblížení
@@ -1905,13 +1919,14 @@ function frame(){
   snow.material.size=(0.17+cur.wind*0.06)*sc;
   for(const e of eggs){ const v=camera.position.distanceTo(e.g.position)<e.max; e.g.visible=v; if(v&&e.anim) e.anim(t); }
   renderer.render(scene, camera);
-  updateLabels(); updateProbe(); if(frameN%15===0) updateSound(); if(frameN%20===0) updateLOD(); updateSmoke(t); if(frameN%10===0) updateScale();
+  updateLabels(); updateProbe(); if(frameN%15===0) updateSound(); if(frameN%20===0){ updateLOD(); treeLOD(); } updateSmoke(t); if(frameN%10===0) updateScale();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 const ld=$('loading'); ld.style.opacity='0'; setTimeout(()=>ld.remove(),600);
 // ================================================================ DM nástroje: zápisky, média k místům, kalendář, předpověď, družina, cesta, setkání, deník, pohledy, minimapa, polární záře
 const DM = (()=>{ try{ return Object.assign({notes:{},day:0,forecast:[],party:null,journal:[],views:[],vol:0.9,player:false,mini:HQ,autoplay:true}, JSON.parse(localStorage.getItem('dm10')||'{}')); }catch(e){ return {notes:{},day:0,forecast:[],party:null,journal:[],views:[],vol:0.9,player:false,mini:HQ,autoplay:true}; } })();
+if(!DM.wz){ if(DM.party) DM.party.z=WZ(DM.party.z); for(const v of DM.views||[]){ if(v.p&&v.t){ const d=WZ(v.t[2])-v.t[2]; v.t[2]+=d; v.p[2]+=d; } } DM.wz=1; try{ localStorage.setItem('dm10',JSON.stringify(DM)); }catch(e){} }   // jednorázový převod uložených poloh po roztažení jihu
 const dmSave=()=>{ try{ localStorage.setItem('dm10', JSON.stringify(DM)); }catch(e){} };
 const el=(tag,attrs={},html='')=>{ const e=document.createElement(tag); for(const k in attrs){ if(k==='style') e.style.cssText=attrs[k]; else e.setAttribute(k,attrs[k]); } e.innerHTML=html; return e; };
 const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1949,6 +1964,7 @@ const panel=el('section',{id:'dmPanel',class:'glass hidden'},`
   <div class="row"><b id="dmDate"></b><span class="note" id="dmDayN"></span></div>
   <div id="dmFc"></div>
   <div class="row"><span>Roční období</span><select class="btn" id="dmSeason"><option value="auto">podle kalendáře</option><option value="winter">zima</option><option value="spring">jaro</option><option value="summer">léto</option><option value="autumn">podzim</option></select><button class="btn" id="dmMonth">+ měsíc</button></div>
+  <div class="row"><span>Denní doba</span><input type="range" id="dmHour" min="0" max="24" step="0.25" style="flex:1;min-width:90px"><span id="dmHourT" style="min-width:44px;text-align:right"></span><label class="btn" style="white-space:nowrap"><input type="checkbox" id="dmClock" style="margin-right:6px">čas plyne</label></div>
   <div class="row"><button class="btn" id="dmNext">Další den ▸</button><button class="btn" id="dmReroll">Přehodit předpověď</button><button class="btn" id="dmDay0">Den 1</button></div>
   <h3>Družina</h3>
   <div class="row"><button class="btn" id="dmPlace">📍 Umístit klepnutím</button><button class="btn" id="dmGo">Najít</button><button class="btn" id="dmHere">Do vybraného místa</button></div>
@@ -2102,7 +2118,7 @@ const EGGV={'Bitva mrazivých obrů':'obri','Vrak v ledu':'vrak','Kraken':'krake
  ['Gryfí jízda',295,475,5.6,70,'Hlídka Gryfí jízdy krouží nad Hlubinou a hlídá město ze vzduchu.'],
  ['Lední medvěd',6,-22,0.15,14,'Lední medvěd se toulá po okraji mořského ledu. Hladový je v zimě vždycky.'],
  ['Poutník v červeném',0.78,0.13,0.08,4,'Starý poutník v červeném rouchu míří k bráně Bryn Shanderu. Kdo to je a co tu hledá, je na tobě.']
-].forEach(([n,x,z,dy,max,d])=>{ DESC[n]=d; addLabel(n,x,z,dy,'region small click',{max,click:()=>showNote(n,'',d)}); });
+].forEach(([n,x,z,dy,max,d])=>{ DESC[n]=d; addLabel(n,x,WZ(z),dy,'region small click',{max,click:()=>showNote(n,'',d)}); });
 const vid=el('video',{id:'dmVid',controls:'',loop:'',playsinline:'',preload:'none',style:'width:100%;border-radius:10px;margin-top:10px;display:none;background:#000'}); box.before(vid);
 { const _n=showNote; showNote=function(a,b,c){ const v=_n(a,b,c), f=EGGV[a]; if(f){ vid.src='video/'+f+'.mp4'; vid.style.display='block'; vid.volume=DM.vol; vid.play().catch(()=>{}); } else { vid.pause(); vid.style.display='none'; } return v; };
   const _s=selectPlace; selectPlace=function(t){ vid.pause(); vid.style.display='none'; return _s(t); };
@@ -2146,6 +2162,34 @@ function syncSeason(){ const id=seasonWanted(); if(id!==SEASON.id) applySeason(i
 $('dmSeason').value=DM.season; $('dmSeason').onchange=e=>{ DM.season=e.target.value; dmSave(); syncSeason(); };
 $('dmMonth').onclick=()=>{ DM.day+=30; dmSave(); drawCal(); };
 Object.defineProperty(DM,'_sr',{value:true,enumerable:false}); syncSeason();
+
+// ================================================================ denní doba podle kalendáře a ročního období
+if(DM.hour==null) DM.hour=12;
+function nightAmt(){ const S={winter:[9.5,15.5],spring:[6.5,18.5],summer:[3.5,21.5],autumn:[7,17.5]}[SEASON.id]||[7,18], h=DM.hour; return 1-smooth(S[0]-0.7,S[0]+0.7,h)*(1-smooth(S[1]-0.7,S[1]+0.7,h)); }
+{ const hs=$('dmHour'), ht=$('dmHourT'), ck=$('dmClock'), show=()=>{ const h=Math.floor(DM.hour)%24, m=Math.round((DM.hour%1)*60); ht.textContent=h+':'+String(m).padStart(2,'0'); hs.value=DM.hour; };
+  hs.oninput=()=>{ DM.hour=+hs.value; show(); }; hs.onchange=()=>dmSave(); ck.checked=!!DM.clock; ck.onchange=()=>{ DM.clock=ck.checked; dmSave(); }; show();
+  let acc=0; setInterval(()=>{ if(!DM.clock||document.hidden) return; DM.hour+=1/30; if(DM.hour>=24){ DM.hour-=24; DM.day++; try{ drawCal(); }catch(e){} } show(); if(++acc%20===0) dmSave(); },1000); }   // 1 herní hodina = 30 s
+
+// ================================================================ živý svět: karavany na cestách, lodě na moři, saně na jezerech
+const LIVE=[], TREEM_F=[1];
+function liveStep(t,dt){ for(const f of LIVE) f(t,dt); }
+function treeLOD(){ const f=camD<320?1:camD<650?0.55:0.32; if(f===TREEM_F[0]) return; TREEM_F[0]=f; for(const [g,s,n] of TREEM){ g.count=s.count=Math.max(1,Math.ceil(n*f)); } }
+{ const pathOf=(pts)=>{ const L=[0]; for(let i=1;i<pts.length;i++) L.push(L[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1])); return {pts,L,len:L[L.length-1]}; };
+  const at=(P,d)=>{ d=((d%P.len)+P.len)%P.len; let i=1; while(i<P.L.length-1 && P.L[i]<d) i++; const a=P.pts[i-1], b=P.pts[i], k=(d-P.L[i-1])/Math.max(1e-6,P.L[i]-P.L[i-1]); return [a[0]+(b[0]-a[0])*k, a[1]+(b[1]-a[1])*k, Math.atan2(b[0]-a[0],b[1]-a[1])]; };
+  // karavany: vůz s plachtou a tažné zvíře
+  const mk=(w,h,l,col,x,y,z)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,l), new THREE.MeshStandardMaterial({color:col, flatShading:true, roughness:0.9})); m.position.set(x,y,z); return m; };
+  const wagon=()=>{ const g=new THREE.Group(); g.add(mk(0.5,0.22,0.9,0x6b4a2f,0,0.2,0), mk(0.46,0.3,0.8,0xd8cfb8,0,0.46,0), mk(0.26,0.28,0.5,0x5a4636,0,0.2,0.85), mk(0.5,0.22,0.9,0x6b4a2f,0,0.2,-1.1), mk(0.46,0.3,0.8,0xc9b79a,0,0.46,-1.1)); return g; };
+  const cars=[]; for(const r of ROADS){ const P=pathOf(r.p); if(P.len<45) continue; const n=Math.min(3,Math.max(1,Math.round(P.len/160))); for(let i=0;i<n;i++){ const g=wagon(); scene.add(g); cars.push({g,P,ph:(i+0.37)*P.len/n+P.len*0.13*cars.length, dir:(cars.length%2?1:-1), sp:0.18+0.05*(cars.length%3)}); } }
+  window.__cars=cars;
+  LIVE.push((t)=>{ const vis=camD<150, s=clamp(camD*0.011,0.1,1.3); for(const c of cars){ c.g.visible=vis; if(!vis) continue; const [x,z,a]=at(c.P,c.ph+c.dir*t*c.sp); const y=ground(x,z); if(y<=0.012){ c.g.visible=false; continue; } c.g.position.set(x,y+0.01,z); c.g.rotation.y=a+(c.dir<0?Math.PI:0); c.g.scale.setScalar(s); } });
+  // lodě podél pobřeží (v zimě jen jižně od ledu)
+  loadModel('ship').then(M=>{ if(!M) return; const pts=[]; for(let z=140;z<=WZ(520);z+=18) pts.push([coastX(z)-6-4*Math.sin(z*0.05), z]); const P=pathOf(pts), ships=[];
+    for(let i=0;i<5;i++){ const m=new THREE.Mesh(M.geo,M.mat); scene.add(m); ships.push({m,ph:i*P.len/5, dir:i%2?1:-1}); }
+    LIVE.push((t)=>{ const vis=camD<260, s=clamp(camD*0.02,0.2,3)/M.dy; for(const h of ships){ h.m.visible=vis; if(!vis) continue; const [x,z,a]=at(P,h.ph+h.dir*t*0.35); if(SEASON.ice && z<190){ h.m.visible=false; continue; } h.m.position.set(x,Math.sin(t*0.9+h.ph)*0.02*s*M.dy,z); h.m.rotation.set(Math.sin(t*0.7+h.ph)*0.04,a+(h.dir<0?Math.PI:0),0); h.m.scale.setScalar(s); } }); });
+  // psí spřežení na zamrzlých jezerech (jen když je led)
+  if(HQ) loadModel('sled').then(M=>{ if(!M) return; const T=(id)=>{ const c=byId[id]; return [c.x,c.z]; }, routes=[[T('bremen'),T('lonelywood')],[T('targos'),T('termalaine')],[T('caer-dineval'),T('easthaven')],[T('good-mead'),T('dougans-hole')]].map(r=>pathOf([r[0],r[1],r[0]])), sl=[];
+    routes.forEach((P,i)=>{ const m=new THREE.Mesh(M.geo,M.mat); scene.add(m); sl.push({m,P,ph:i*3.1}); });
+    LIVE.push((t)=>{ const vis=camD<40 && SEASON.sled, s=clamp(camD*0.012,0.02,0.22)/M.dy; for(const h of sl){ h.m.visible=vis; if(!vis) continue; const [x,z,a]=at(h.P,h.ph+t*0.12); if(!inLake(x,z)){ h.m.visible=false; continue; } h.m.position.set(x,ICE_Y+0.002,z); h.m.rotation.y=a; h.m.scale.setScalar(s); } }); }); }
 
 // mobil: stránka se nesmí zvětšovat štípnutím ani dvojklepnutím na ovládací prvky (zvětšuje se jen mapa)
 for(const ev of ['gesturestart','gesturechange','gestureend']) document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
