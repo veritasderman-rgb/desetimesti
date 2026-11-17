@@ -1334,12 +1334,12 @@ Promise.all(['castle','tower',...(HQ?['ptower']:[])].map(loadModel)).then(()=>{ 
   di.count=n; di.receiveShadow=true; scene.add(di); SEASON_OBJ.drifts=di; }
 // kouř z komínů a teplá záře oken (za věčné noci) u domů poblíž kamery
 const SMK={n:0,list:[]}; let updateSmoke=()=>{};
-{ const MAXH=HQ?220:70, PER=3, N=MAXH*PER, pos=new Float32Array(N*3), al=new Float32Array(N), sz=new Float32Array(N), geo=new THREE.BufferGeometry();
+{ const MAXH=HQ?200:60, PER=9, N=MAXH*PER, pos=new Float32Array(N*3), al=new Float32Array(N), sz=new Float32Array(N), geo=new THREE.BufferGeometry();
   geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); geo.setAttribute('a',new THREE.BufferAttribute(al,1)); geo.setAttribute('s',new THREE.BufferAttribute(sz,1));
   const mk=(col,add)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending,uniforms:{uC:{value:new THREE.Color(col)},uH:{value:600},uK:{value:1}},
     vertexShader:'attribute float a; attribute float s; uniform float uH; varying float vA; void main(){ vA=a; vec4 mv=modelViewMatrix*vec4(position,1.0); gl_PointSize=s*uH/max(0.0001,-mv.z); gl_Position=projectionMatrix*mv; }',
     fragmentShader:'uniform vec3 uC; uniform float uK; varying float vA; void main(){ float d=length(gl_PointCoord-0.5); float m=smoothstep(0.5,0.1,d); gl_FragColor=vec4(uC, m*vA*uK); }'});
-  const smoke=new THREE.Points(geo,mk(0x8d98a6,false)); smoke.frustumCulled=false; smoke.renderOrder=5; scene.add(smoke);
+  const smoke=new THREE.Points(geo,mk(0x8a94a3,false)); smoke.frustumCulled=false; smoke.renderOrder=5; scene.add(smoke);
   const gpos=new Float32Array(MAXH*3), ga=new Float32Array(MAXH), gs=new Float32Array(MAXH), ggeo=new THREE.BufferGeometry();
   ggeo.setAttribute('position',new THREE.BufferAttribute(gpos,3)); ggeo.setAttribute('a',new THREE.BufferAttribute(ga,1)); ggeo.setAttribute('s',new THREE.BufferAttribute(gs,1));
   const glow=new THREE.Points(ggeo,mk(0xffb45a,true)); glow.frustumCulled=false; glow.renderOrder=6; scene.add(glow);
@@ -1347,11 +1347,11 @@ const SMK={n:0,list:[]}; let updateSmoke=()=>{};
   updateSmoke=(t)=>{ if(camD>9){ if(smoke.visible){ smoke.visible=glow.visible=false; } return; } smoke.visible=true; glow.visible=cur.night>0.05;
     if(t-last>0.7){ last=t; const tx=controls.target.x, tz=controls.target.z, c=[]; for(const r of HREC){ const d=Math.hypot(r.x-tx,r.z-tz); if(d<camD*1.4+0.05) c.push([d,r]); } c.sort((p,q)=>p[0]-q[0]); SMK.list=c.slice(0,MAXH).map(v=>v[1]); }
     const H=renderer.domElement.clientHeight/(2*Math.tan(camera.fov*Math.PI/360)); smoke.material.uniforms.uH.value=glow.material.uniforms.uH.value=H;
-    const wn=cur.wind, fade=1-smooth(5,9,camD); smoke.material.uniforms.uK.value=0.62*fade*(1-cur.night*0.4); glow.material.uniforms.uK.value=0.5*cur.night*fade;
-    let n=0; SMK.list.forEach((r,i)=>{ const S=Math.max(r.w,r.l), top=r.y+S*0.95, ox=Math.sin(r.ry+1)*S*0.18, oz=Math.cos(r.ry+1)*S*0.18;
+    const wn=cur.wind, fade=1-smooth(5,9,camD); smoke.material.uniforms.uK.value=0.62*fade*(1-cur.night*0.35); glow.material.uniforms.uK.value=0.5*cur.night*fade;
+    let n=0; SMK.list.forEach((r,i)=>{ const S=Math.max(r.w,r.l), top=r.y+S*1.12, ox=Math.sin(r.ry+1)*S*0.18, oz=Math.cos(r.ry+1)*S*0.18;
       gpos[i*3]=r.x; gpos[i*3+1]=r.y+S*0.35; gpos[i*3+2]=r.z; ga[i]=0.6+0.4*Math.sin(t*2.3+i*1.7)*0.3; gs[i]=S*2.6;
-      if(r.bi%3===2 && r.tid!=='waterdeep') return;
-      for(let j=0;j<PER;j++){ const p=(t*0.16+hs(r.bi+j*17)+j/PER)%1; pos[n*3]=r.x+ox+p*S*(0.5+wn*3.2)+Math.sin(t*0.8+r.bi+j)*S*0.06*p; pos[n*3+1]=top+p*S*(1.5-wn*0.7); pos[n*3+2]=r.z+oz+p*S*(0.25+wn*1.2); al[n]=Math.sin(Math.min(1,p*6)*1.5708)*(1-p); sz[n]=S*(0.3+p*0.95); n++; } });
+      if((r.bi%3===2 && r.tid!=='waterdeep') || (SEASON.id==='summer' && r.bi%3!==0)) return;
+      for(let j=0;j<PER;j++){ const p=(t*0.11+hs(r.bi)+j/PER)%1, q=p*p; pos[n*3]=r.x+ox+(p*0.25+q*(0.5+wn*3.0))*S+Math.sin(t*0.9+r.bi+j*2.1)*S*0.05*p; pos[n*3+1]=top+p*S*(1.45-wn*0.7); pos[n*3+2]=r.z+oz+(p*0.1+q*(0.2+wn*1.1))*S; al[n]=Math.min(1,p*8)*(1-p); sz[n]=S*(0.2+p*0.8); n++; } });
     geo.setDrawRange(0,n); geo.attributes.position.needsUpdate=geo.attributes.a.needsUpdate=geo.attributes.s.needsUpdate=true;
     ggeo.setDrawRange(0,SMK.list.length); ggeo.attributes.position.needsUpdate=ggeo.attributes.a.needsUpdate=ggeo.attributes.s.needsUpdate=true; }; }
 // domy: nejbližší domy ke kameře se při přiblížení vymění za modely (jen na PC)
