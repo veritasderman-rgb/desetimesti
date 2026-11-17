@@ -2217,7 +2217,7 @@ Prohledali jsme náklad. Mezi zásobami byla bedna, která tam neměla co dělat
 
 Kapitán není jediný nemocný. Kašle víc lidí.
 
-Ray vzal sud rumu a vydrhl paluby, náklad i posádku. Pak zapálil vykuřovadlo a jednoho po druhém je vyudil jako šunky. Zack se mezitím zhulil s kormidelníkem.
+Ray vzal sud rumu a vydrhl paluby, náklad i posádku. Pak zapálil vykuřovadlo a jednoho po druhém je vyudil jako šunky. Zek se mezitím zhulil s kormidelníkem.
 
 Sleduju toho druida. Jak jí, jak se dívá na vodu, jak mluví s Niri. Na nic jsem nepřišel. Katju jsem kdysi taky neprokoukl a stálo to Fenjiho a Truxe.
 
@@ -2244,10 +2244,10 @@ Přísaha
 Našli ho druidi ze Smaragdové enklávy, napůl mrtvého. Matka mezitím odešla se svitkem na sever, aby ho ochránila. Turgen pak v noci poklekl a přísahal službu Nemesis, bohyni pomsty: jednou se vrátí a Katja zaplatí. Nejdřív ale musí nabrat sílu a znalosti. Proto se vydal do světa.
 
 Družina
-V Hlubině se seznámil s paladinem Rayem, goliášem Zackem a elfskou druidkou Niri. V Goldenfields spolu odhalili spiknutí Zhentarimu, odrazili invazi skřetů a zachránili enta. Za odměnu dostali semena vlastních stromů. Turgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.
+V Hlubině se seznámil s paladinem Rayem, goliášem Zekem a elfskou druidkou Niri. V Goldenfields spolu odhalili spiknutí Zhentarimu, odrazili invazi skřetů a zachránili enta. Za odměnu dostali semena vlastních stromů. Turgen, který se dřív vyznal jen ve stínech a maskách, se tu poprvé přiblížil k ochraně přírody.
 
 Plavba na sever
-Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. Někdo do nákladu podstrčil bednu s nakaženými blechami a za vším stáli temní druidi. Ray zachránil posádku rumem a vykuřovadlem a Zack se mezitím zhulil s kormidelníkem. Turgen podezíral druida na lodi, jestli to není jejich člověk. V Katjině případě kdysi zradu přehlédl a podruhé už nechce. Mor porazili, ale když dopluli do Fireshearu, město hořelo. Pár hodin před nimi ho napadli ledoví obři a na obzoru ještě viděli odplouvat jejich obrovskou loď.`;
+Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. Někdo do nákladu podstrčil bednu s nakaženými blechami a za vším stáli temní druidi. Ray zachránil posádku rumem a vykuřovadlem a Zek se mezitím zhulil s kormidelníkem. Turgen podezíral druida na lodi, jestli to není jejich člověk. V Katjině případě kdysi zradu přehlédl a podruhé už nechce. Mor porazili, ale když dopluli do Fireshearu, město hořelo. Pár hodin před nimi ho napadli ledoví obři a na obzoru ještě viděli odplouvat jejich obrovskou loď.`;
 { const W=byId['waterdeep'], G=byId['goldenfields'], F=byId['fireshear'];
   // trasa: Hlubina → Goldenfields → Hlubina → po moři na sever → Fireshear
   const land=[[W.x,W.z],[W.x+10,W.z-22],[W.x+20,W.z-50],[G.x-4,G.z+24],[G.x,G.z]];
@@ -2260,21 +2260,21 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
   const mid=land[2];
   const STOPS=[
     {n:'①',t:'Hlubina – verbování',sub:'Turgenův deník · 3. 12.',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,
-     txt:"3. prosince, Hlubina\nRáno u lady Remallie Haventree. Harfeníci hledají lidi na sever a vybrali si nás čtyři: paladina Raye, goliáše Zacka, druidku Niriel, která si říká Niri, a mě.\n\nNejdřív ale Goldenfields. Schovává se tam Semile Southwille, který ze severu utekl. Máme ho najít a zjistit, co tam viděl."},
+     txt:"3. prosince, Hlubina\nRáno u lady Remallie Haventree. Harfeníci hledají lidi na sever a vybrali si nás čtyři: paladina Raye, goliáše Zeka, druidku Niriel, která si říká Niri, a mě.\n\nNejdřív ale Goldenfields. Schovává se tam Semile Southwille, který ze severu utekl. Máme ho najít a zjistit, co tam viděl."},
     {n:'②',t:'Na cestě – karavana a noční návštěva',sub:'Turgenův deník · 4.–5. 12.',x:mid[0],z:mid[1],dy:1.2,d:9,
      txt:"4. prosince\nCestou do Goldenfields jsme minuli karavanu. Vozy obyčejné, lidé kolem nich ne. Hlídali si náklad víc, než by kupci museli. Tipuju Zhentarim, ale jistý si nejsem.\n\nNoc na 5. prosince\nU tábora se objevil drow. Nikdo ho neviděl přicházet. Nepředstavil se, ale časem jsme zjistili, že to byl nejspíš Elis Dewin, majitel krčmy Crawling Spider v Hlubině. Co dělal v noci na cestě, neřekl, a odešel dřív, než jsem se stihl zeptat podruhé.\n\nMěl s sebou celkem velkou partu divných lidí."},
     {n:'③',t:'Goldenfields – spiknutí a bitva',sub:'Turgenův deník · 5.–8. 12.',x:G.x,z:G.z,dy:1.6,d:7,
      txt:"5. prosince, Goldenfields\nHned u brány jsme každý dostali semeno vlastního stromu. Nevím, co s ním, ale nosím ho u sebe.\n\nSemila Southwilla jsme našli. Pověděl nám, co se na severu děje, a dal nám mapu Severu a Desetiměstí.\n\nHorší zpráva: do Goldenfields se někdo dostal zevnitř, nejspíš Zhentarim. Šli jsme s tím za opatem Ellardinem Darovikem. Vyslechl nás a neudělal nic. Jeho zástupkyně Zi Liang nás brala vážně.\n\n6. prosince\nZaútočili skřeti. Obranu vedla Zi Liang, opat do toho nemluvil.\n\nPomohl nám Lifferlas, zdejší ent. Stáhl na sebe ty největší, co s sebou skřeti přivedli, a držel je, dokud jsme si neporadili se zbytkem. Bez něj bychom to měli o dost těžší.\n\nGoldenfields stojí. Poprvé mi došlo, že chránit něco, co roste, není o tolik jiné než hlídat záda přátelům.\n\nHobit Oren Yogilvy o nás složil píseň.\n\n8. prosince\nNávrat do Hlubiny."},
     {n:'④',t:'Hlubina – zimní učení',sub:'Turgenův deník · 8. 12. – 3. 1.',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,cls:'below',
-     txt:"8. prosince\nZpátky v Hlubině. Remallia dostala, co chtěla, a my máme čas do konce měsíce.\n\nProsinec\nKaždý se učí po svém. Niri medituje. Ray slouží ve Městě mrtvých. Zack trénuje. Mě si vzal Haldric, zrzavý půlelf, a honí mě městem po střechách a kanalizací. Střechy mi jdou líp.\n\n29. prosince\nDýchánek u Remallie. Zprávy ze severu jsou horší než před měsícem. Vyrážíme hned po svátcích.\n\n30. prosince\nOslava Nového roku.\n\n3. ledna\nNalodili jsme se. Loď veze zásoby pro Desetiměstí."},
+     txt:"8. prosince\nZpátky v Hlubině. Remallia dostala, co chtěla, a my máme čas do konce měsíce.\n\nProsinec\nKaždý se učí po svém. Niri medituje. Ray slouží ve Městě mrtvých. Zek trénuje. Mě si vzal Haldric, zrzavý půlelf, a honí mě městem po střechách a kanalizací. Střechy mi jdou líp.\n\n29. prosince\nDýchánek u Remallie. Zprávy ze severu jsou horší než před měsícem. Vyrážíme hned po svátcích.\n\n30. prosince\nOslava Nového roku.\n\n3. ledna\nNalodili jsme se. Loď veze zásoby pro Desetiměstí."},
     {n:'⑤',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3.–7. 1. · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
     {n:'⑥',t:'Fireshear v plamenech',sub:'Turgenův deník · 19. 1.',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
   // karta deníku: papír, data jako nadpisy, ilustrace, kdo tu byl, listování a přehrání celé výpravy
-  const WHO=[['Remallia Haventree – agentka Harfeníků, zadala úkol','Ray – paladin Silvana','Zack – goliáš, válečník','Niriel „Niri“ – elfka, druidka','Turgen – měňavec, pisatel deníku'],
+  const WHO=[['Remallia Haventree – agentka Harfeníků, zadala úkol','Ray – paladin Silvana','Zek – goliáš, válečník','Niriel „Niri“ – elfka, druidka','Turgen – měňavec, pisatel deníku'],
     ['Neznámá karavana – možná Zhentarim','Drow, nejspíš Elis Dewin – majitel krčmy Crawling Spider','Jeho početná parta'],
     ['Semile Southwille – uprchlík ze severu, dal družině mapu','Ellardin Darovik – opat, varování nedbal','Zi Liang – jeho zástupkyně, vedla obranu','Lifferlas – ent, probuzený strom','Oren Yogilvy – hobit, složil o družině píseň'],
     ['Haldric „zrzek“ – půlelf, Turgenův učitel','Remallia Haventree – zprávy ze severu'],
-    ['Kapitán – nemocný morem','Druid na palubě – nejasné, ke komu patří','Kormidelník – Zackův společník u vykuřovadla'],
+    ['Kapitán – nemocný morem','Druid na palubě – nejasné, ke komu patří','Kormidelník – Zekův společník u vykuřovadla'],
     ['Ledoví obři – vyplenili město a odpluli']];
   STOPS.forEach((s,i)=>{ s.i=i; s.who=WHO[i]; s.img='diary/'+(i+1)+'.jpg'; });
   const QUEST={t:'Otevřené otázky',sub:'Deník družiny · nitky, které ještě nikdo nerozpletl',list:[
