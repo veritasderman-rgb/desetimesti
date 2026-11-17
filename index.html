@@ -408,6 +408,9 @@ const KELVIN = [12.35,-10.8], HOTENOW = [139.5,202.7];
 const RANGES = [ // x,z,sx,sz,h
   [-171,50,9,4.5,6],   // Ice Peak
   [198,355,9,9,8],[222,380,9,9,9],[250,405,9,9,8],[270,426,8,8,5.5],   // Mečové hory
+  [66,31,26,8,6.2],[120,32,30,8,7],[186,34,26,8,6.4],   // jižní předhůří Páteře světa (Klauthen Vale – Kuldahar – Mirabar)
+  [152,160,8,4.5,5.6],[143,177,4,9,5.6],                  // hřeben nad Gauntlgrymem
+  [461,50,10,8,6],                                        // hory na východním okraji Lurkwoodu
   [186,134,22,14,2.6],  // Skaliska
   [343,172,16,14,2.2],  // Surbrin Hills
   [273,226,10,12,2.2],  // Starmetal Hills
@@ -434,7 +437,9 @@ function northZ(x){ return interp(NORTH,x) + (fbm(x*0.12,1.1,3)-0.5)*(x>-30&&x<1
 function forestV(x,z){ let b=-9; for(const F of FORESTS){ if(Math.abs(x-F[0])>F[2]*1.5||Math.abs(z-F[1])>F[3]*1.5) continue; const f=F[5]>1?0.06:0.9; b=Math.max(b, 1-Math.hypot((x-F[0])/F[2],(z-F[1])/F[3]) + (fbm(x*f+F[0],z*f,2)-0.5)*(F[5]>1?0.5:1.1)); } return b; }
 function peaks(x,z){ const wx=x+(fbm(x*0.045+11,z*0.045,2)-0.5)*14, wz=z+(fbm(x*0.045,z*0.045+17,2)-0.5)*14;
   const r=Math.pow(ridged(wx*0.075,wz*0.075,5),1.7), d=ridged(x*0.34+3,z*0.34,3);
-  return 0.2+1.2*r+0.22*d*r+0.06*d; }
+  const r2=Math.pow(ridged(wz*0.13+31,wx*0.13-7,4),1.5);                       // příčné boční hřebeny
+  const v=Math.abs(fbm(x*0.021+5,z*0.034+9,3)-0.5), k=0.42+0.58*smooth(0,0.055,v);   // hluboká průchozí údolí
+  return (0.2+1.05*r+0.55*r*r2+0.24*d*r+0.07*d)*k; }
 const HILLS=[]; for(const t of TEN) for(const h of t.plan.hills||[]){ const g=tg(t,h); HILLS.push([g[0],g[1],h[2],h[3]]); }
 
 // Ledová jezera (Ice Lakes) mezi Luskanem a Mirabarem – obrysy přenesené z přehledové mapy Severu
@@ -444,7 +449,7 @@ function terrain(x,z){ const t=terrain0(x,z);
   if(x>68 && x<132 && z>46 && z<96) for(const L of ICELAKES){ const b=L.bb; if(x<b[0]-3.2||x>b[1]+3.2||z<b[2]-3.2||z>b[3]+3.2) continue;
     if(L.y===null){ let m=terrain0(L.cx,L.cz).h; for(const p of L.pts) m=Math.min(m,terrain0(p[0],p[1]).h); L.y=Math.max(0.35,m); }
     const d=distPoly(x,z,L.closed);
-    if(inPoly(x,z,L.pts)) t.h=L.y-0.1-0.25*smooth(0,1.5,d); else if(d<3){ const k=smooth(0,3,d); t.h=(L.y+0.05)+(t.h-(L.y+0.05))*k*k; } }
+    if(inPoly(x,z,L.pts)) t.h=L.y-0.3-0.25*smooth(0,1.5,d); else if(d<3.5){ const k=smooth(0.4,3.5,d); t.h=(L.y+0.02)+(t.h-(L.y+0.02))*k*k; } }
   return t; }
 function terrain0(x,z){
   const zc = interp(SPINE,x);
@@ -607,6 +612,48 @@ CITIES.push(
    desc:"Osamělý skalnatý štít, v jehož nitru leží opuštěná trpasličí pevnost Khundrukar se slavnou kovárnou. Dnes ji obývají orkové a horší věci."},
   {id:'dungeon-ruins', name:"Dungeon of the Ruins", x:473, z:121, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Zříceniny · východní okraj mapy",
    desc:"Zříceniny s podzemím na východním okraji mapy. Poloha podle přehledové mapy Severu, přibližně."},
+  {id:'icewolf', name:"Icewolf", x:-162, z:45.5, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Ice Peak",
+   desc:"Rybářská a lovecká osada na severním břehu ostrova Ice Peak. Poloha podle přehledové mapy Severu."},
+  {id:'bjorns-hold', name:"Bjorn's Hold", x:-153, z:52, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Ice Peak",
+   desc:"Opevněná osada na východě ostrova Ice Peak. Poloha podle přehledové mapy Severu."},
+  {id:'kuldahar', name:"Kuldahar", x:127, z:34, s:2.4, r:0.5, n:7, minor:true, site:true, sub:"Horská osada · Páteř světa",
+   desc:"Osada v průsmyku Páteře světa, schoulená kolem obrovského dubu, jehož teplo drží údolí bez sněhu."},
+  {id:'iceflow', name:"Iceflow", x:11, z:68, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · řeka Iceflow",
+   desc:"Osada u brodu přes řeku Iceflow na cestě mezi Luskanem a Údolím ledového větru. Poloha podle přehledové mapy Severu."},
+  {id:'molinas-keep', name:"Molina's Keep", x:315, z:44.5, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Tvrz · okraj Lurkwoodu",
+   desc:"Tvrz na severním okraji Lurkwoodu pod Páteří světa. Poloha podle přehledové mapy Severu."},
+  {id:'whispering-caverns', name:"Whispering Caverns", x:165, z:120, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Jeskyně · Skaliska",
+   desc:"Šeptající jeskyně ve Skaliskách. Poloha podle přehledové mapy Severu."},
+  {id:'new-leaf', name:"New Leaf", x:151, z:199, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Letohradský hvozd",
+   desc:"Lesní osada na úpatí hory Hotenow. Poloha podle přehledové mapy Severu."},
+  {id:'ember', name:"Ember", x:145.5, z:216, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Místo · pod horou Hotenow",
+   desc:"Místo na jižním úbočí hory Hotenow. Poloha podle přehledové mapy Severu."},
+  {id:'new-sharandar', name:"New Sharandar", x:180, z:222, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Eladrinská osada · Letohradský hvozd",
+   desc:"Osada eladrinů, kteří se vrátili z Feywildu a obnovují zříceniny starého Sharandaru."},
+  {id:'vellosk', name:"Vellosk", x:232, z:227, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Uthgardti · kmen Šedého vlka",
+   desc:"Sídlo uthgardtského kmene Šedého vlka na východním okraji Letohradského hvozdu."},
+  {id:'gothaladreum', name:"Gothaladreum", x:110, z:221, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Místo · u Port Llastu",
+   desc:"Místo ve vnitrozemí východně od Port Llastu. Poloha podle přehledové mapy Severu."},
+  {id:'windycliffs', name:"Windycliffs", x:117, z:248.5, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Útesy · Vysoká cesta",
+   desc:"Větrné útesy nad Vysokou cestou mezi Port Llastem a Letohradem. Poloha podle přehledové mapy Severu."},
+  {id:'nightsedge', name:"Nightsedge", x:171, z:258, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · okraj hvozdu",
+   desc:"Osada na jižním okraji Letohradského hvozdu. Poloha podle přehledové mapy Severu."},
+  {id:'loggers-camp', name:"Tábor dřevorubců", x:192, z:256, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Tibor Wester's loggers camp",
+   desc:"Dřevorubecký tábor na řece v Letohradském hvozdu, který vede Tibor Wester."},
+  {id:'circle-thunder', name:"Kruh hromu", x:235, z:256.5, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Circle of Thunder",
+   desc:"Kamenný kruh na kopci v lese, kde se scházejí vyznavači boha bouří Talose."},
+  {id:'falcons-lodge', name:"Falconův lovecký srub", x:214, z:265, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Falcon's hunting lodge",
+   desc:"Opevněný lovecký srub starého lovce Falcona uprostřed Letohradského hvozdu."},
+  {id:'xinlenal', name:"Xinlenal", x:236, z:267, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Zříceniny · padlé netherské město",
+   desc:"Trosky létajícího netherského města, které se kdysi zřítilo do Letohradského hvozdu."},
+  {id:'floodblest', name:"Floodblest", x:147, z:270, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Letohradská řeka",
+   desc:"Osada na Letohradské řece nedaleko Thundertree. Poloha podle přehledové mapy Severu."},
+  {id:'shrine-swords', name:"Shrine of Swords", x:132, z:271, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Svatyně · u Helmovy tvrze",
+   desc:"Svatyně u cesty severně od Helmovy tvrze. Poloha podle přehledové mapy Severu."},
+  {id:'vilnask', name:"Vilnask", x:121, z:287, s:2.4, r:0.5, n:5, minor:true, site:true, sub:"Osada · Vysoká cesta",
+   desc:"Osada u Vysoké cesty jižně od Letohradu. Poloha podle přehledové mapy Severu."},
+  {id:'cragmaw-castle', name:"Hrad Cragmaw", x:166, z:302, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Cragmaw Castle · zřícenina",
+   desc:"Polorozpadlý hrad v lese, kde sídlí goblinoidní kmen Cragmaw."},
   {id:'griffons-nest', name:"Griffon's Nest", x:352, z:158, s:2.4, r:0.5, n:6, minor:true, site:true, sub:"Surbrin Hills · Uthgardti",
    desc:"Opevněná osada uthgardtského kmene Gryfa v pahorkatině."},
   {id:'dungeon-death', name:"Dungeon of Death", x:390, z:89, s:2.4, r:0.5, n:0, keep:{dx:0,dz:0,ruin:true}, minor:true, site:true, sub:"Lurkwood",
@@ -761,7 +808,9 @@ function axis(a0,a1,b0,b1,fine,maxStep,g){
 const XS = axis(B.x0,B.x1,-7,22,HQ?0.15:0.24,HQ?2.0:3.6,1.07), ZS = axis(B.z0,B.z1,-13.5,9,HQ?0.15:0.24,HQ?2.0:3.6,1.07);
 { const add=(arr,a,b,st)=>{ for(let v=a; v<=b; v+=st) arr.push(v); arr.sort((p,q)=>p-q); for(let i=arr.length-1;i>0;i--) if(arr[i]-arr[i-1]<st*0.45) arr.splice(i,1); };
   add(XS,292.6,300.4,HQ?0.14:0.24); add(ZS,469.6,481.2,HQ?0.14:0.24);
-  add(XS,70,130,HQ?0.6:1.0); add(ZS,48,94,HQ?0.6:1.0); }      // jemná mřížka pod Hlubinou
+  add(XS,70,130,HQ?0.6:1.0); add(ZS,48,94,HQ?0.6:1.0);
+  const add2=(arr,a,b,st)=>{ const base=arr.slice(), out=[]; let j=0; for(let v=a; v<=b; v+=st){ while(j<base.length-1 && base[j+1]<=v) j++; const d=Math.min(Math.abs(v-base[j]), j<base.length-1?Math.abs(base[j+1]-v):1e9); if(d>=st*0.55) out.push(v); } for(const v of out) arr.push(v); arr.sort((p,q)=>p-q); };
+  add2(ZS,-42,52,HQ?1.0:1.8); if(HQ) add2(XS,-60,478,1.5); }      // jemná mřížka pod Hlubinou
 const SEASONS={
   winter:{id:'winter',name:'zima',zA:330,zB:105,eA:2.2,eB:4.5,patch:1,green:0,seaA:105,seaB:45,ice:true,dale:2,road:14,southT:-2,refT:-22,sled:true},
   spring:{id:'spring',name:'jaro',zA:120,zB:10,eA:3.5,eB:6.5,patch:0.45,green:0.3,seaA:60,seaB:0,ice:true,dale:2.5,road:20,southT:9,refT:-3,sled:true},
@@ -1205,7 +1254,7 @@ addLabel('Desetiměstí', 6,-2,1.5, 'city big', {click:()=>flyView('dale'), min:
  ['řeka Shaengarne',-14,-1,0.2,'small',60],['Lonelywoodský hvozd',4,-12.4,0.4,'small',30],['Drahokamový důl',5.2,-8.0,0.2,'small',14],
  ['Desátá stezka',-5.2,8.5,0.4,'small',70,10],['Reghedský ledovec',75,-35,3,'',500],['Moře pohyblivého ledu',-45,-45,1.5,'',600],
  ['Páteř světa',150,4,14,'huge',1e9,90],['Údolí ledového větru',-18,-7,0.6,'',400,45],
- ['Severní stezka',22,74,2,'small',420],['Ice Peak',-171,50,7,'',1e9,60],['Icefang Point',-106,60,2,'small',420],['Cold Run',-66,58,2,'small',300],['Železná stezka',-46,30,2,'small',260],['Redrun',-14,13.5,0.5,'small',70],['Klauthen Vale',84,18,6,'small',420],['Ledová jezera',99,69,2,'small',420],['řeka Iceflow',0,77,2,'small',300],['Údolí Khedrun',332,23,6,'small',520],['Věčná blata',470,225,3,'',900],['Stormwreck Isle',101,299,1.5,'small',300],['Ještěří močál',326,519,2,'small',260],['Moře mečů',40,330,3,'huge',1e9,200],['Letohradský hvozd',185,228,4,'',900],['hora Hotenow',139.5,202.7,10,'small',520],
+ ['Severní stezka',22,74,2,'small',420],['Ice Peak',-171,50,7,'',1e9,60],['Icefang Point',-106,60,2,'small',420],['Cold Run',-66,58,2,'small',300],['Železná stezka',-46,30,2,'small',260],['Redrun',-14,13.5,0.5,'small',70],['Klauthen Vale',84,18,6,'small',420],['Ledová jezera',99,69,2,'small',420],['Průsmyk Kuldahar',101,-2,2,'small',420],['Údolí stínů',143,-20,2,'small',420],['Fireshear Vale',-25,84,2,'small',420],['řeka Black Raven',141,49,2,'small',420],['Uthgardtské kopce',244,141,2,'small',420],['řeka Goblintide',423,139,2,'small',420],['potok Shining',400,147,2,'small',420],['řeka Laughingflow',421,227,2,'small',420],['Surbrinská stezka',430,191,2,'small',420],['Ztracené kopce',248,305,2,'small',420],['řeka Berun',255,241,2,'small',420],['řeka Morgur',184,186,2,'small',420],['řeka Surbrin',382,272,2,'small',420],['Zátoka mlh',86,262,2,'small',420],['Jundarův kopec',358,318,2,'small',420],['Údolí rothé',116,236,2,'small',420],['řeka Iceflow',0,77,2,'small',300],['Údolí Khedrun',332,23,6,'small',520],['Věčná blata',470,225,3,'',900],['Stormwreck Isle',101,299,1.5,'small',300],['Ještěří močál',326,519,2,'small',260],['Moře mečů',40,330,3,'huge',1e9,200],['Letohradský hvozd',185,228,4,'',900],['hora Hotenow',139.5,202.7,10,'small',520],
  ['Skaliska',186,134,3,'small',520],['Lurkwood',350,78,4,'small',760],['Mečové hory',222,380,10,'',900],['Močál mrtvých',206,399,2,'small',520],
  ['Kryptgarden',283,368,4,'small',520],['Westwood',295,403,3,'small',420],['Vysoký hvozd',462,395,5,'',1e9,120],['Forlorn Hills',398,448,5,'small',700],
  ['Sumber Hills',348,378,4,'small',520],['Surbrin Hills',343,172,4,'small',700],['Starmetal Hills',273,226,4,'small',520],
