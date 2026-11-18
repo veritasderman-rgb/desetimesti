@@ -2259,13 +2259,13 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
   const seaMid=sea[Math.floor(sea.length*0.55)];
   const mid=land[2];
   const STOPS=[
-    {n:'①',t:'Hlubina – verbování',sub:'Turgenův deník · 3. 12.',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,
+    {n:'①',t:'Hlubina – verbování',sub:'Turgenův deník · 3. 12.',x:W.x+0.9,z:W.z-1.3,dy:2.6,d:9,
      txt:"3. prosince, Hlubina\nRáno u lady Remallie Haventree. Harfeníci hledají lidi na sever a vybrali si nás čtyři: paladina Raye, goliáše Zeka, druidku Niriel, která si říká Niri, a mě.\n\nNejdřív ale Goldenfields. Schovává se tam Semile Southwille, který ze severu utekl. Máme ho najít a zjistit, co tam viděl."},
     {n:'②',t:'Na cestě – karavana a noční návštěva',sub:'Turgenův deník · 4.–5. 12.',x:mid[0],z:mid[1],dy:1.2,d:9,
      txt:"4. prosince\nCestou do Goldenfields jsme minuli karavanu. Vozy obyčejné, lidé kolem nich ne. Hlídali si náklad víc, než by kupci museli. Tipuju Zhentarim, ale jistý si nejsem.\n\nNoc na 5. prosince\nU tábora se objevil drow. Nikdo ho neviděl přicházet. Nepředstavil se, ale časem jsme zjistili, že to byl nejspíš Elis Dewin, majitel krčmy Crawling Spider v Hlubině. Co dělal v noci na cestě, neřekl, a odešel dřív, než jsem se stihl zeptat podruhé.\n\nMěl s sebou celkem velkou partu divných lidí."},
     {n:'③',t:'Goldenfields – spiknutí a bitva',sub:'Turgenův deník · 5.–8. 12.',x:G.x,z:G.z,dy:1.6,d:7,
      txt:"5. prosince, Goldenfields\nHned u brány jsme každý dostali semeno vlastního stromu. Nevím, co s ním, ale nosím ho u sebe.\n\nSemila Southwilla jsme našli. Pověděl nám, co se na severu děje, a dal nám mapu Severu a Desetiměstí.\n\nHorší zpráva: do Goldenfields se někdo dostal zevnitř, nejspíš Zhentarim. Šli jsme s tím za opatem Ellardinem Darovikem. Vyslechl nás a neudělal nic. Jeho zástupkyně Zi Liang nás brala vážně.\n\n6. prosince\nZaútočili skřeti. Obranu vedla Zi Liang, opat do toho nemluvil.\n\nPomohl nám Lifferlas, zdejší ent. Stáhl na sebe ty největší, co s sebou skřeti přivedli, a držel je, dokud jsme si neporadili se zbytkem. Bez něj bychom to měli o dost těžší.\n\nGoldenfields stojí. Poprvé mi došlo, že chránit něco, co roste, není o tolik jiné než hlídat záda přátelům.\n\nHobit Oren Yogilvy o nás složil píseň.\n\n8. prosince\nNávrat do Hlubiny."},
-    {n:'④',t:'Hlubina – zimní učení',sub:'Turgenův deník · 8. 12. – 3. 1.',x:W.x+2.2,z:W.z-3.2,dy:1.4,d:9,cls:'below',
+    {n:'④',t:'Hlubina – zimní učení',sub:'Turgenův deník · 8. 12. – 3. 1.',x:W.x+0.9,z:W.z-1.3,dy:2.6,d:9,cls:'below',
      txt:"8. prosince\nZpátky v Hlubině. Remallia dostala, co chtěla, a my máme čas do konce měsíce.\n\nProsinec\nKaždý se učí po svém. Niri medituje. Ray slouží ve Městě mrtvých. Zek trénuje. Mě si vzal Haldric, zrzavý půlelf, a honí mě městem po střechách a kanalizací. Střechy mi jdou líp.\n\n29. prosince\nDýchánek u Remallie. Zprávy ze severu jsou horší než před měsícem. Vyrážíme hned po svátcích.\n\n30. prosince\nOslava Nového roku.\n\n3. ledna\nNalodili jsme se. Loď veze zásoby pro Desetiměstí."},
     {n:'⑤',t:'Cesta do Fireshearu – mor na lodi',sub:'Turgenův deník · 3.–7. 1. · s písní',x:seaMid[0],z:seaMid[1],dy:1.2,d:9,txt:DIARY_SHIP,audio:'audio/cesta-na-lodi.mp3'},
     {n:'⑥',t:'Fireshear v plamenech',sub:'Turgenův deník · 19. 1.',x:F.x,z:F.z,dy:1.6,d:8,txt:DIARY_FIRE} ];
@@ -2313,7 +2313,7 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
   #info.diary #infoDesc ul{margin:6px 0 0;padding-left:20px} #info.diary #infoDesc li{margin-bottom:5px}
   #diaryImg{display:none;width:100%;border-radius:8px;margin:8px 0 6px;border:1px solid #b89b62;aspect-ratio:16/9;object-fit:cover;background:#d9c69a}
   #diaryNav{display:none;align-items:center;justify-content:space-between;gap:8px;margin-top:10px} #diaryNav button{font:600 14px/1 Inter,system-ui,sans-serif;padding:9px 12px;border-radius:9px;border:1px solid #b89b62;background:#fbf3df;color:#3a2408;cursor:pointer} #diaryNav button:disabled{opacity:.35} #diaryNav span{font:600 13px/1 Inter,system-ui,sans-serif;color:#7a5a24}
-  @media (max-width:700px){ #info.diary{max-height:64vh!important;overflow-y:auto!important} #info.diary #infoDesc{max-height:none;overflow:visible} #diaryImg{aspect-ratio:2/1} #diaryNav{position:sticky;bottom:-1px;background:#e7d5ab;padding:8px 0 4px;margin-top:6px} }`; document.head.appendChild(st);
+  @media (max-width:700px){ #info.diary{max-height:64vh!important;overflow-y:auto!important} #info.diary #infoDesc{max-height:none;overflow:visible} #diaryImg{aspect-ratio:2/1} #diaryNav{position:sticky;bottom:-13px;background:#e7d5ab;padding:8px 0 14px;margin:6px 0 -12px;box-shadow:0 -8px 10px -6px rgba(90,60,20,.25)} }`; document.head.appendChild(st);
   const aud=el('audio',{id:'diaryAud',controls:'',preload:'none',style:'width:100%;margin-top:10px;display:none'}); vid.after(aud);
   const img=el('img',{id:'diaryImg',alt:'',loading:'lazy'}); $('infoDesc').before(img); img.onerror=()=>{ img.style.display='none'; };
   const nav=el('div',{id:'diaryNav'},'<button id="dPrev">‹ Předchozí</button><span id="dPos"></span><button id="dPlay" title="Přehrát celou výpravu">▶</button><button id="dNext">Další ›</button>'); aud.after(nav);
@@ -2361,6 +2361,24 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
     egg(gs,F.x-8,F.z+6,1,500,(t)=>{ const k=(t*0.04)%1, x=F.x-8-k*36, z=F.z+6+k*10; if(ground(x,z)>0.01){ gs.visible=false; return; } gs.position.set(x,Math.sin(t*0.6)*0.05,z); gs.rotation.y=Math.atan2(-36,10); gs.scale.setScalar(clamp(camD*0.05,1.2,7)); }); }
   if(DM.diaryOff) setVis(false);
 }
+
+// ================================================================ rozložení: panely se nepřekrývají (počítač i telefon)
+{ const st=document.createElement('style'); st.textContent=`
+@media (min-width:860px){
+  #info{max-height:calc(100% - 96px)!important}
+  #info.diary #infoDesc{max-height:calc(100vh - 450px)}
+  #dmMini,#hint,#scale{transition:right .2s}
+  body:has(#info:not(.hidden)) #dmMini{right:calc(392px + env(safe-area-inset-right))}
+  body:has(#info:not(.hidden)) #hint, body:has(#info:not(.hidden)) #scale{right:calc(396px + env(safe-area-inset-right))}
+  header.top select.btn{flex:0 1 170px!important;max-width:170px!important}
+}
+@media (max-width:700px){
+  header.top .t2{display:none} header.top .t1{font-size:17px}
+  #diarySel{order:-2} #places{order:-1}
+  header.top select.btn{flex:0 0 auto!important;min-width:112px;max-width:150px!important}
+  body:has(#info:not(.hidden)) #dmPanel{display:none}
+  #info.diary{max-height:58vh!important} #diaryImg{aspect-ratio:5/2}
+}`; document.head.appendChild(st); }
 
 // mobil: stránka se nesmí zvětšovat štípnutím ani dvojklepnutím na ovládací prvky (zvětšuje se jen mapa)
 for(const ev of ['gesturestart','gesturechange','gestureend']) document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
