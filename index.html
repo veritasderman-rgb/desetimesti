@@ -2281,11 +2281,35 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
     'Kdo poslal na sever bednu s morovými blechami?','Kdo jsou temní druidi a co na severu chtějí?','Kde je starý druid, kterého zastrašili, až zalezl a mlčí?','Patří druid z lodi k temným druidům, nebo je to jen spolucestující?',
     'Co dělal drow – nejspíš Elis Dewin – v noci na cestě do Goldenfields a kdo byli lidé s ním?','Patřila karavana ze 4. prosince k Zhentarimu?','Proč ledoví obři přepadli Fireshear a kam jejich loď odplula?','Co všechno je na mapě Severu od Semila Southwilla?',
     'Kam na sever odešla Gatria se svitkem z Netherilu?','Kde je Katja?']};
+  const WIKI='https://forgottenrealms.fandom.com/wiki/';
+  const NPCS=[['Hlubina',[
+      ['Remallia Haventree','Hlubina, její sídlo · 3. a 29. 12.','Agentka Harfeníků. Naverbovala družinu kvůli dění na severu a poslala ji do Goldenfields za Semilem. Na dýchánku 29. 12. předala zprávy ze severu.','Remallia_Haventree'],
+      ['Haldric „zrzek“','Hlubina · prosinec','Zrzavý půlelf. Turgen u něj byl celý prosinec ve službě a učil se pohyb městem po střechách a kanalizací.',null]]],
+    ['Cesta do Goldenfields',[
+      ['Elis Dewin (nejspíš)','U nočního tábora · noc na 5. 12.','Drow, který se objevil u tábora a nepředstavil se. Časem vyšlo najevo, že jde asi o majitele hlubinské krčmy Crawling Spider. Měl s sebou celkem velkou partu divných lidí.','Crawling_Spider','krčma Crawling Spider'],
+      ['Lidé od karavany','Na cestě · 4. 12.','Podivná skupina s karavanou. Hlídali si náklad víc, než by kupci museli. Možná Zhentarim.',null]]],
+    ['Goldenfields',[
+      ['Semile Southwille','Goldenfields · 5. 12.','Uprchl ze severu a schovával se tu. Pověděl družině, co se na severu děje, a dal jí mapu Severu a Desetiměstí.',null],
+      ['Ellardin Darovik','Goldenfields, opatství Harvesthome · 5.–6. 12.','Opat. Varování před infiltrací vyslechl a neudělal nic.','Ellardin_Darovik'],
+      ['Zi Liang','Goldenfields · 5.–6. 12.','Opatova zástupkyně, původem z východu. Brala družinu vážně a 6. 12. vedla celou obranu.','Zi_Liang'],
+      ['Lifferlas','Goldenfields · 6. 12.','Ent, probuzený strom. V bitvě na sebe stáhl největší nepřátele a držel je.','Lifferlas'],
+      ['Oren Yogilvy','Goldenfields · po bitvě','Hobit a muzikant. Složil o družině píseň.','Oren_Yogilvy']]],
+    ['Plavba na sever',[
+      ['Kapitán','Loď z Hlubiny · 3.–19. 1.','Nemocný morem, kašlal krev už při vyplutí.',null],
+      ['Druid na palubě','Loď z Hlubiny · 3.–19. 1.','Spolucestující. Turgen ho sledoval kvůli temným druidům, ale na nic nepřišel.',null],
+      ['Kormidelník','Loď z Hlubiny · 5. 1.','Zek se s ním zhulil u vykuřovadla.',null]]],
+    ['Z Turgenovy minulosti',[
+      ['Katja','Trhov','Vůdkyně kultu Masky. Vlákala Turgena a jeho přátele do pasti a zradila je.',null],
+      ['Fenji a Trux','Trhov','Hobit a trpaslík, Turgenovi nejlepší přátelé. Zemřeli při Katjině zradě.',null],
+      ['Gatria','Trhov, pak sever','Turgenova matka, drowka a kněžka Eilistraee. Odešla na sever se svitkem z Netherilu.',null],
+      ['Tamis','Sigil','Turgenův otec, měňavec, zloděj a mág. Dnes slouží Chronosovi jako ochránce jeho bludiště.',null]]]];
+  const NPC={t:'Postavy, které jsme potkali',sub:'Deník družiny · kde to bylo a co o nich víme',html:NPCS.map(([g,L])=>'<h4>'+g+'</h4>'+L.map(([n,w,d,u,ul])=>'<p><b>'+n+'</b><br><span class="dwhere">'+w+'</span><br>'+d+(u?' <a href="'+WIKI+u+'" target="_blank" rel="noopener">'+(ul?'Wiki: '+ul:'Profil na wiki')+' ↗</a>':'')+'</p>').join('')).join('')};
   const st=document.createElement('style'); st.textContent=`.lbl.diary{font:700 13px/1 Inter,system-ui,sans-serif;color:#2a1c05;background:#f2c14e;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5);text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap} body.nodiary .lbl.diary{display:none!important} .lbl.diary.below{margin-top:30px}
   #info.diary{background:linear-gradient(180deg,#f4e8cb,#e7d5ab)!important;color:#2b2013!important;border:1px solid #b89b62!important;box-shadow:0 10px 34px rgba(0,0,0,.55),inset 0 0 40px rgba(120,84,30,.18)!important}
   #info.diary #infoName{color:#3a2408!important;font-family:"Cormorant Garamond",Georgia,serif} #info.diary #infoSub{color:#8a5a14!important} #info.diary #infoClose{color:#3a2408!important;background:rgba(90,60,20,.12)!important} #info.diary #dmBox{display:none!important}
   #info.diary #infoDesc{max-height:34vh;overflow-y:auto;padding-right:8px;font:400 16px/1.55 Georgia,"Times New Roman",serif} #info.diary #infoDesc,#info.diary #infoDesc p,#info.diary #infoDesc li{color:#2b2013!important}
   #info.diary #infoDesc h4{margin:14px 0 4px;font:700 18px/1.2 "Cormorant Garamond",Georgia,serif;color:#7a3d10!important;border-bottom:1px solid rgba(122,61,16,.3);padding-bottom:3px} #info.diary #infoDesc h4:first-child{margin-top:2px} #info.diary #infoDesc p{margin:0 0 9px}
+  #info.diary #infoDesc .dwhere{font:600 12.5px/1.4 Inter,system-ui,sans-serif;color:#8a5a14!important} #info.diary #infoDesc a{color:#1d5a8a!important;font:600 13px/1.4 Inter,system-ui,sans-serif;white-space:nowrap} #info.diary #infoDesc b{color:#2b2013}
   #info.diary #infoDesc ul{margin:6px 0 0;padding-left:20px} #info.diary #infoDesc li{margin-bottom:5px}
   #diaryImg{display:none;width:100%;border-radius:8px;margin:8px 0 6px;border:1px solid #b89b62;aspect-ratio:16/9;object-fit:cover;background:#d9c69a}
   #diaryNav{display:none;align-items:center;justify-content:space-between;gap:8px;margin-top:10px} #diaryNav button{font:600 14px/1 Inter,system-ui,sans-serif;padding:9px 12px;border-radius:9px;border:1px solid #b89b62;background:#fbf3df;color:#3a2408;cursor:pointer} #diaryNav button:disabled{opacity:.35} #diaryNav span{font:600 13px/1 Inter,system-ui,sans-serif;color:#7a5a24}
@@ -2301,7 +2325,7 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
   const fmt=t=>t.split('\n\n').map(b=>{ const L=b.split('\n'), h=L[0]; if(h.length<48 && !/[.!?…]$/.test(h) && (L.length>1 || /^\d|^Noc|^Prosinec/.test(h))) return '<h4>'+esc(h)+'</h4>'+(L.length>1?'<p>'+esc(L.slice(1).join(' '))+'</p>':''); return '<p>'+esc(b)+'</p>'; }).join('');
   const TURGEN={t:'Turgenův příběh',sub:'Měňavec z Trhova · kněz Masky, dnes služebník Nemesis · s písní Stín Trhova',txt:TURGEN_STORY,audio:'audio/stin-trhova.mp3'};
   const open=(s,fly)=>{ showNote(s.t,s.sub,''); $('info').classList.add('diary'); cur=s;
-    $('infoDesc').innerHTML=(s.list?'<ul>'+s.list.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ul>':fmt(s.txt))+(s.who?'<h4>Kdo tu byl</h4><ul>'+s.who.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul>':''); $('infoDesc').scrollTop=0;
+    $('infoDesc').innerHTML=(s.html?s.html:s.list?'<ul>'+s.list.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ul>':fmt(s.txt))+(s.who?'<h4>Kdo tu byl</h4><ul>'+s.who.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul>':''); $('infoDesc').scrollTop=0;
     if(s.img){ img.src=s.img; img.style.display='block'; }
     if(s.audio&&!tour){ if(!aud.src.endsWith(s.audio)) aud.src=s.audio; aud.volume=DM.vol??0.8; aud.style.display='block'; }
     if(s.i!=null){ nav.style.display='flex'; $('dPos').textContent=(s.i+1)+' / '+STOPS.length; $('dPrev').disabled=s.i===0; $('dNext').disabled=s.i===STOPS.length-1; }
@@ -2313,10 +2337,10 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
   $('dPlay').onclick=()=>{ if(tour){ stopTour(); aud.pause(); } else play(cur&&cur.i!=null&&cur.i<STOPS.length-1?cur.i:0); };
   for(const s of STOPS) addLabel(s.n+' '+s.t.split(' – ')[0], s.x,s.z,s.dy,'diary'+(s.cls?' '+s.cls:''),{y:Math.max(ground(s.x,s.z),0),click:()=>{ stopTour(); open(s,false); }});
   // volba v horní liště
-  const sel=el('select',{class:'btn',id:'diarySel','aria-label':'Deník družiny'}); sel.innerHTML='<option value="">📖 Deník…</option><option value="play">▶ Přehrát výpravu</option>'+STOPS.map((s,i)=>`<option value="${i}">${s.n} ${s.t}</option>`).join('')+'<option value="q">Otevřené otázky</option><option value="tu">Turgenův příběh ♪</option><option value="all">Celá trasa</option><option value="tg">Skrýt / zobrazit stopu</option>'; $('places').before(sel);
+  const sel=el('select',{class:'btn',id:'diarySel','aria-label':'Deník družiny'}); sel.innerHTML='<option value="">📖 Deník…</option><option value="play">▶ Přehrát výpravu</option>'+STOPS.map((s,i)=>`<option value="${i}">${s.n} ${s.t}</option>`).join('')+'<option value="npc">Postavy (NPC)</option><option value="q">Otevřené otázky</option><option value="tu">Turgenův příběh ♪</option><option value="all">Celá trasa</option><option value="tg">Skrýt / zobrazit stopu</option>'; $('places').before(sel);
   const setVis=v=>{ DM.diaryOff=!v; trail.visible=v; document.body.classList.toggle('nodiary',!v); for(const g of dGroups) g.userData.off=!v; }; const dGroups=[];
   sel.onchange=()=>{ const v=sel.value; sel.value=''; if(v==='tg'){ setVis(!!DM.diaryOff); dmSave(); return; } if(DM.diaryOff){ setVis(true); dmSave(); } stopTour();
-    if(v==='play'){ play(0); } else if(v==='q'){ open(QUEST,false); } else if(v==='tu'){ open(TURGEN,false); } else if(v==='all'){ closeInfo(); const cx=(W.x+F.x)/2, cz=(W.z+F.z)/2; flyTo(new THREE.Vector3(cx,HQ?760:980,cz+330), new THREE.Vector3(cx,0,cz), 1800); } else if(v!=='') open(STOPS[+v],true); };
+    if(v==='play'){ play(0); } else if(v==='npc'){ open(NPC,false); } else if(v==='q'){ open(QUEST,false); } else if(v==='tu'){ open(TURGEN,false); } else if(v==='all'){ closeInfo(); const cx=(W.x+F.x)/2, cz=(W.z+F.z)/2; flyTo(new THREE.Vector3(cx,HQ?760:980,cz+330), new THREE.Vector3(cx,0,cz), 1800); } else if(v!=='') open(STOPS[+v],true); };
   // --- co je vidět přímo v mapě
   const egg=(g,x,z,sc,max,anim)=>{ g.position.set(x,Math.max(ground(x,z),0),z); g.scale.setScalar(sc); scene.add(g); dGroups.push(g); eggs.push({g,max,anim:(t)=>{ if(g.userData.off){ g.visible=false; return; } if(anim) anim(t); }}); return g; };
   // Goldenfields: zachráněný ent, záhon mladých stromků a opuštěný skřetí tábor
