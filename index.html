@@ -2380,6 +2380,9 @@ Z Hlubiny vypluli lodí se zásobami pro Desetiměstí. Na palubě propukl mor. 
   #info.diary{max-height:58vh!important} #diaryImg{aspect-ratio:5/2}
 }`; document.head.appendChild(st); }
 
+// popisek „Ledový drak“ letí s drakem, místo aby visel na pevném místě nad Kelvinovou mohylou
+{ const L=labels.find(l=>l.el.textContent==='Ledový drak'); if(L) LIVE.push(()=>{ const g=dragonGroups[0]; if(g) L.p.set(g.position.x, g.position.y+0.45, g.position.z); }); }
+
 // mobil: stránka se nesmí zvětšovat štípnutím ani dvojklepnutím na ovládací prvky (zvětšuje se jen mapa)
 for(const ev of ['gesturestart','gesturechange','gestureend']) document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
 {
